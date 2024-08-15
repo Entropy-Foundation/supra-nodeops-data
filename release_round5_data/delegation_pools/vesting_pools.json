@@ -1,0 +1,132 @@
+[
+  {
+  "vesting_pool_id": "VESTING POOL 0",
+  "admin_address": "bf6357e0c38cd4298541273281189b31604f259b2cc69719690d6f2b8c0ae703",
+  "vpool_locking_percentage": 45,
+  "vesting_numerators": [
+    50,
+    50
+  ],
+  "vesting_denominators": 100,
+  "withdrawal_address": "0c5214e8a05c08b8de81ce4a5fd8b6f0124f73bcf8e2b9694a4080fd0291d25c",
+  "cliff_period_in_seconds": 1500,
+  "period_duration_in_seconds": 3000
+  },
+  {
+    "vesting_pool_id": "VESTING POOL 1",
+    "admin_address": "773d643482b1d5cd2a94f41574a4fe7e2953da4d9099f5200b1145d546bfcda9",
+    "vpool_locking_percentage": 72,
+    "vesting_numerators": [
+      50,
+      50
+    ],
+    "vesting_denominators": 100,
+    "withdrawal_address": "7e604e298fd88c346fd6706ba6d9bbc9878e168c35d0434e2de941b61b084f76",
+    "cliff_period_in_seconds": 2400,
+    "period_duration_in_seconds": 4800
+  },
+  {
+    "vesting_pool_id": "VESTING POOL 2",
+    "admin_address": "39cf29d02ed4ba2a422e50ec489120e2217af0562698ae04e637c59155250a91",
+    "vpool_locking_percentage": 54,
+    "vesting_numerators": [
+      50,
+      50
+    ],
+    "vesting_denominators": 100,
+    "withdrawal_address": "fd86c63d4fdd1524ae58bf164fde7f4c601d75ce196195ffa17f98a49e177f66",
+    "cliff_period_in_seconds": 1800,
+    "period_duration_in_seconds": 3600
+  },
+  {
+    "vesting_pool_id": "VESTING POOL 3",
+    "admin_address": "a41c59d0cb336fe92962a3fc70609070a817eef9a18bff68933d1ae97328ebac",
+    "vpool_locking_percentage": 81,
+    "vesting_numerators": [
+      50,
+      50
+    ],
+    "vesting_denominators": 100,
+    "withdrawal_address": "00dceb3d1bd627ab51438259d7610d794b0346061510c92642b059b5080f9103",
+    "cliff_period_in_seconds": 2700,
+    "period_duration_in_seconds": 5400
+  },
+  {
+    "vesting_pool_id": "VESTING POOL 4",
+    "admin_address": "84355ce4749692e0b4d56a9941f9de5d70cf79a3fb4c6652c8cfce44de0b45b8",
+    "vpool_locking_percentage": 90,
+    "vesting_numerators": [
+      50,
+      50
+    ],
+    "vesting_denominators": 100,
+    "withdrawal_address": "083fa16885cfdc0b68d3c85e8b7b8c48f45e1a22409b1713102d14463d540c33",
+    "cliff_period_in_seconds": 3000,
+    "period_duration_in_seconds": 6000
+  },
+  {
+    "vesting_pool_id": "VESTING POOL 5",
+    "admin_address": "9dbfc84e9ac3b3a09dceab7889410c87c6a23e1e7b82bbfd8ee389ca53358f25",
+    "vpool_locking_percentage": 18,
+    "vesting_numerators": [
+      50,
+      50
+    ],
+    "vesting_denominators": 100,
+    "withdrawal_address": "af5c68e1ba695866b5a354dd164460b9874df1a44455c9af3b447273bdbdcdad",
+    "cliff_period_in_seconds": 600,
+    "period_duration_in_seconds": 1200
+  },
+  {
+    "vesting_pool_id": "VESTING POOL 6",
+    "admin_address": "e4ab6f9b8b52824cffd7b421c4aa2c2c86d55d65b4d665e646fdbe3a59bf5fe2",
+    "vpool_locking_percentage": 9,
+    "vesting_numerators": [
+      50,
+      50
+    ],
+    "vesting_denominators": 100,
+    "withdrawal_address": "1fb66a8a28d85b87c97279e620011317e41ffbfd27ca2e0e8d04ca23b9ed4856",
+    "cliff_period_in_seconds": 300,
+    "period_duration_in_seconds": 600
+  },
+  {
+    "vesting_pool_id": "VESTING POOL 7",
+    "admin_address": "a19df3f21c218d309bd2ad6e762ed7e64f51b73e6cef9cf78cd5ad3e598c201c",
+    "vpool_locking_percentage": 27,
+    "vesting_numerators": [
+      50,
+      50
+    ],
+    "vesting_denominators": 100,
+    "withdrawal_address": "59546898faa3391774e0b67435a3ee9206cde2ece4372b337a7b09b9520a20f3",
+    "cliff_period_in_seconds": 900,
+    "period_duration_in_seconds": 1800
+  },
+  {
+    "vesting_pool_id": "VESTING POOL 8",
+    "admin_address": "950bf5c9f22d893163da281521ac33b44aef578a99859a5c7150d5b8a6b714d3",
+    "vpool_locking_percentage": 36,
+    "vesting_numerators": [
+      50,
+      50
+    ],
+    "vesting_denominators": 100,
+    "withdrawal_address": "11d6b04d0d4872ae8a8cc415011ee446ab969d2aea35833ecb5756d6592edb74",
+    "cliff_period_in_seconds": 1200,
+    "period_duration_in_seconds": 2400
+  },
+  {
+    "vesting_pool_id": "VESTING POOL 9",
+    "admin_address": "ddc334d0ee96a936b9e58d3f7139be11c694945a8c204ac4e33c415527a95348",
+    "vpool_locking_percentage": 63,
+    "vesting_numerators": [
+      50,
+      50
+    ],
+    "vesting_denominators": 100,
+    "withdrawal_address": "59bb496367dc753404a7676e8ff4109d55e055891bd3269b0c89b804bcf6e359",
+    "cliff_period_in_seconds": 2100,
+    "period_duration_in_seconds": 4200
+  }
+]

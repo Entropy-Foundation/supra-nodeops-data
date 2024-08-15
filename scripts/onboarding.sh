@@ -165,9 +165,6 @@ archive_and_remove_phase_1_files() {
                 zip -r old-phase_1_archived.zip phase_1_archived_temp.zip
                 rm phase_1_archived_temp.zip
                 echo "New archive added to existing old-phase_1_archived.zip"
-
-                rm old-phase_1_archived.zip
-                echo "old-phase_1_archived.zip deleted"
             else
                 mv phase_1_archived.zip old-phase_1_archived.zip
                 echo "Existing archive renamed to old-phase_1_archived.zip"
