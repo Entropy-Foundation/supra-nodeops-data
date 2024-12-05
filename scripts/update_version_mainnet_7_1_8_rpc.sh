@@ -62,6 +62,7 @@ binary_upgrade(){
     GROUP_ID=$(id -g)
 
     if !     docker run --name "supra_rpc_mainnet_$ip_address" \
+            -p 30000:30000 \
             -v $HOST_SUPRA_HOME:/supra/configs \
             --user "$USER_ID:$GROUP_ID" \
             -e "SUPRA_HOME=/supra/configs" \
@@ -69,7 +70,6 @@ binary_upgrade(){
             -e "SUPRA_MAX_LOG_FILE_SIZE=400000000" \
             -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
             -e "SUPRA_MAX_LOG_FILES=20" \
-            --net=host \
             -itd $NEW_RPC_IMAGE_NAME; then
         echo "Failed to run new RPC Node container $NEW_RPC_IMAGE_NAME image. Exiting..."
         exit 1
