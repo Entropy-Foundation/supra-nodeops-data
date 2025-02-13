@@ -42,10 +42,11 @@ function echo_rpc_common_parameters() {
 }
 
 function setup_usage() {
-    echo "Usage: ./setup.sh setup $NODE_TYPE <image_version> <container_name> <host_supra_home> <network>" >&2
     if [ "$NODE_TYPE" == "validator" ]; then
+        echo "Usage: ./setup.sh setup $NODE_TYPE <image_version> <container_name> <host_supra_home> <network>" >&2
         echo_validator_common_parameters
     elif [ "$NODE_TYPE" == "rpc" ]; then
+        echo "Usage: ./setup.sh setup $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <validator_ip>" >&2
         echo_rpc_common_parameters
     fi
     exit 1
