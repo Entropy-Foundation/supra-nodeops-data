@@ -10,7 +10,7 @@ HOST_SUPRA_HOME="$5"
 NETWORK="$6"
 
 if [ "$FUNCTION" == "setup" ]; then
-    if [ "$NODE_TYPE" == "rpc"]; then    
+    if [ "$NODE_TYPE" == "rpc" ]; then    
         VALIDATOR_IP="$7"
     fi
 fi
