@@ -9,8 +9,10 @@ CONTAINER_NAME="$4"
 HOST_SUPRA_HOME="$5"
 NETWORK="$6"
 
-if [ "$FUNCTION" == "setup" ]; then    
-    VALIDATOR_IP="$7"
+if [ "$FUNCTION" == "setup" ]; then
+    if [ "$NODE_TYPE" == "rpc"]; then    
+        VALIDATOR_IP="$7"
+    fi
 fi
 
 
