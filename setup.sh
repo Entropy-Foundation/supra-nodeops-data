@@ -6,13 +6,12 @@ FUNCTION="$1"
 NODE_TYPE="$2"
 NEW_IMAGE_VERSION="$3"
 CONTAINER_NAME="$4"
-HOST_SUPRA_HOME="$SCRIPT_DIR/$5"
+HOST_SUPRA_HOME="$5"
 NETWORK="$6"
 
-CONFIG_FILE="$SCRIPT_DIR/operator_config_mainnet.toml"
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
+CONFIG_FILE="$SCRIPT_DIR/operator_config_mainnet.toml"
 
 if [ "$FUNCTION" == "setup" ]; then
     if [ "$NODE_TYPE" == "rpc" ]; then    
@@ -427,7 +426,7 @@ description = "Starkey wallet extension"
 mode = "Cors"
 '
 
-DOCKER_IMAGE="asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/rpc-node:${NEW_IMAGE_VERSION}"
+DOCKER_IMAGE="asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/${NODE_TYPE}-node:${NEW_IMAGE_VERSION}"
 
 if [ "$NETWORK" = "mainnet" ]; then
     RCLONE_CONFIG="$MAINNET_RCLONE_CONFIG"
@@ -507,6 +506,7 @@ function maybe_update_container() {
 
 
 function start_validator_docker_container() {
+    echo "Starting Docker Container..."
     local user_id="$(id -u)"
     local group_id="$(id -g)"
     docker start "$CONTAINER_NAME" &>/dev/null \
@@ -558,7 +558,7 @@ function migrate_rpc_profile(){
     encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
     password=$(echo "$encoded_pswd" | openssl base64 -d -A) 
      expect << EOF
-        spawn docker exec -it "$CONTAINER_NAME" ./supra/rpc_node migrate-db
+        spawn docker exec -it "$CONTAINER_NAME" ./supra/rpc_node migrate-db "$HOST_SUPRA_HOME"/config.toml 
         expect "password:" { send "$password\r" }
         expect eof
 EOF
@@ -634,6 +634,7 @@ function download_rpc_static_configuration_files() {
     
 }
 function download_validator_static_configuration_files() {
+    echo "downloading static configuration files for validator..."
     local ca_certificate="$HOST_SUPRA_HOME/ca_certificate.pem"
     local client_supra_certificate="$HOST_SUPRA_HOME/server_supra_certificate.pem"
     local client_supra_key="$HOST_SUPRA_HOME/server_supra_key.pem"
@@ -776,13 +777,13 @@ function setup_new_rpc_node() {
 if [ "$FUNCTION" == "setup" ]; then
     if [ "$NODE_TYPE" == "validator" ]; then
         setup_new_validator_node
-    elif ["$NODE_TYPE" == "rpc"]; then
+    elif [ "$NODE_TYPE" == "rpc" ]; then
         setup_new_rpc_node
     fi
 elif [ "$FUNCTION" == "update" ]; then
     if [ "$NODE_TYPE" == "validator" ]; then
         update_validator_existing_container
-    elif ["$NODE_TYPE" == "rpc"]; then
+    elif [ "$NODE_TYPE" == "rpc" ]; then
         update_rpc_existing_container
     fi
 fi
