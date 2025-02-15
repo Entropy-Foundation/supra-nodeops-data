@@ -6,8 +6,13 @@ FUNCTION="$1"
 NODE_TYPE="$2"
 NEW_IMAGE_VERSION="$3"
 CONTAINER_NAME="$4"
-HOST_SUPRA_HOME="$5"
+HOST_SUPRA_HOME="$SCRIPT_DIR/$5"
 NETWORK="$6"
+
+CONFIG_FILE="$SCRIPT_DIR/operator_config_mainnet.toml"
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 
 if [ "$FUNCTION" == "setup" ]; then
     if [ "$NODE_TYPE" == "rpc" ]; then    
@@ -457,6 +462,7 @@ function ensure_supra_home_is_absolute_path() {
     # Enter it and print the fully-qualified path in case it was given as a relative path.
     cd "$HOST_SUPRA_HOME"
     HOST_SUPRA_HOME="$(pwd)"
+    echo "SUPRA_HOME path: $HOST_SUPRA_HOME"
 }
 
 
@@ -499,6 +505,7 @@ function maybe_update_container() {
     fi
 }
 
+
 function start_validator_docker_container() {
     local user_id="$(id -u)"
     local group_id="$(id -g)"
@@ -535,6 +542,57 @@ function start_rpc_docker_container() {
             -itd "asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/rpc-node:${NEW_IMAGE_VERSION}"
 }
 
+function migrate_validator_profile(){
+    echo "Migrating current profile....."    
+    encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
+    password=$(echo "$encoded_pswd" | openssl base64 -d -A) 
+     expect << EOF
+        spawn docker exec -it "$CONTAINER_NAME" ./supra/supra migrate 
+        expect "password:" { send "$password\r" }
+        expect eof
+EOF
+}
+
+function migrate_rpc_profile(){
+    echo "Migrating current profile....."    
+    encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
+    password=$(echo "$encoded_pswd" | openssl base64 -d -A) 
+     expect << EOF
+        spawn docker exec -it "$CONTAINER_NAME" ./supra/rpc_node migrate-db
+        expect "password:" { send "$password\r" }
+        expect eof
+EOF
+}
+
+function rename_validator_identity(){
+    echo "renaming validator_identity to node_identity"
+    cp $HOST_SUPRA_HOME/validator_identity.pem $HOST_SUPRA_HOME/node_identity.pem
+}
+
+#verify if config_file exist
+function start_validator_node(){
+    encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
+    password=$(echo "$encoded_pswd" | openssl base64 -d -A)
+    expect << EOF
+        spawn docker exec -it supra_mainnet_$CONTAINER_NAME /supra/supra node smr run
+        expect "password:" { send "$password\r" }
+        expect eof
+EOF
+}
+
+function start_rpc_node(){
+    docker cp $HOST_SUPRA_HOME/genesis.blob $CONTAINER_NAME:/supra/configs/
+    docker cp $HOST_SUPRA_HOME/config.toml $CONTAINER_NAME:/supra/configs/
+
+    echo "Starting the RPC node......."
+
+    /usr/bin/expect <<EOF
+    spawn docker exec -it $CONTAINER_NAME /supra/rpc_node start
+    expect "Starting logger runtime"
+    send "\r"
+    expect eof
+EOF
+}
 
 function create_config_toml() {
     local config_toml="$HOST_SUPRA_HOME/config.toml"
@@ -672,7 +730,10 @@ function update_validator_existing_container() {
     maybe_update_container
     download_validator_static_configuration_files
     start_validator_docker_container
-    sync_validator_snapshots
+    migrate_validator_profile
+    rename_validator_identity
+    start_validator_node
+    # sync_validator_snapshots
     echo "Container update completed."
 }
 
@@ -682,7 +743,8 @@ function update_rpc_existing_container() {
     maybe_update_container
     download_rpc_static_configuration_files
     start_rpc_docker_container
-    sync_rpc_snapshots
+    migrate_rpc_profile
+    # sync_rpc_snapshots
     copy_rpc_root_config_files
     echo "Container update completed."
 }
