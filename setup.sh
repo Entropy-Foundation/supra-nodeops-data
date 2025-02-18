@@ -743,7 +743,7 @@ function update_validator_existing_container() {
     migrate_validator_profile
     rename_validator_identity
     start_validator_node
-    # sync_validator_snapshots
+    sync_validator_snapshots
     echo "Container update completed."
 }
 
