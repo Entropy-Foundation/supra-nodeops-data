@@ -8,21 +8,29 @@ NEW_IMAGE_VERSION="$3"
 CONTAINER_NAME="$4"
 HOST_SUPRA_HOME="$5"
 NETWORK="$6"
+SYNC_SNAPSHOT=$8
 
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-if [ "$NETWORK" == "testnet" ]; then
-    CONFIG_FILE="$SCRIPT_DIR/operator_config.toml"
-elif [ "$NETWORK" == "mainnet" ]; then
-    CONFIG_FILE="$SCRIPT_DIR/operator_config_mainnet.toml"
-fi
-
-if [ "$FUNCTION" == "setup" ]; then
-    if [ "$NODE_TYPE" == "rpc" ]; then    
-        VALIDATOR_IP="$7"
+if [ "$NODE_TYPE" == "validator" ]; then
+    if [ "$NETWORK" == "testnet" ]; then
+        CONFIG_FILE="$SCRIPT_DIR/operator_config.toml"
+    elif [ "$NETWORK" == "mainnet" ]; then
+        CONFIG_FILE="$SCRIPT_DIR/operator_config_mainnet.toml"
+    fi
+elif [ "$NODE_TYPE" == "rpc" ]; then
+    if [ "$NETWORK" == "testnet" ]; then
+        CONFIG_FILE="$SCRIPT_DIR/operator_rpc_config.toml"
+    elif [ "$NETWORK" == "mainnet" ]; then
+        CONFIG_FILE="$SCRIPT_DIR/operator_rpc_config_mainnet.toml"
     fi
 fi
+
+if [ "$NODE_TYPE" == "rpc" ]; then    
+    VALIDATOR_IP="$7"
+fi
+
 function parse_toml() {
         grep -w "$1" "$2" | cut -d'=' -f2- | tr -d ' "'
 }
@@ -67,7 +75,7 @@ function setup_usage() {
 }
 
 function update_usage() {
-    echo "Usage: ./setup.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network>" >&2
+    echo "Usage: ./setup.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <sync_snapshot>(optional)" >&2
     if [ "$NODE_TYPE" == "validator" ]; then
         echo_validator_common_parameters
     elif [ "$NODE_TYPE" == "rpc" ]; then
@@ -314,31 +322,40 @@ TESTNET_RPC_CONFIG_TOML='####################################### PROTOCOL PARAME
 # at genesis. They may subsequently be updated via governance decisions.
 
 # Core protocol parameters.
-
-# A unique identifier for this instance of the Supra protocol. Prevents replay attacks across chains.
-chain_instance.chain_id = 6
-# The length of an epoch in seconds.
-chain_instance.epoch_duration_secs = 7200
-# The number of seconds that stake locked in a Stake Pool will automatically be locked up for when
-# its current lockup expires, if no request is made to unlock it.
-chain_instance.recurring_lockup_duration_secs = 14400
-# The number of seconds allocated for voting on governance proposals. Governance will initially be controlled by The Supra Foundation.
-chain_instance.voting_duration_secs = 7200
-# Determines whether the network will start with a faucet, amongst other things.
-chain_instance.is_testnet = true
-# Tuesday, September 17, 2024 12:00:00.000 PM (UTC)
-chain_instance.genesis_timestamp_microseconds = 1726574400000000
-
-
-######################################### NODE PARAMETERS #########################################
-
 # The below parameters are node-specific and may be configured as required by the operator.
 
 # The port on which the node should listen for incoming RPC requests.
 bind_addr = "0.0.0.0:26000"
 # If `true` then blocks will not be verified before execution. This value should be `false`
 # unless you also control the node from which this RPC node is receiving blocks.
-block_provider_is_trusted = false
+block_provider_is_trusted = true
+resume = true
+# The path to `supra_committees.json`.
+supra_committees_config = "./configs/supra_committees.json"
+consensus_access_tokens = []
+
+# A unique identifier for this instance of the Supra protocol. Prevents replay attacks across chains.
+[chain_instance]
+chain_id = 6
+# The length of an epoch in seconds.
+epoch_duration_secs = 7200
+# The number of seconds that stake locked in a Stake Pool will automatically be locked up for when
+# its current lockup expires, if no request is made to unlock it.
+recurring_lockup_duration_secs = 14400
+# The number of seconds allocated for voting on governance proposals. Governance will initially be controlled by The Supra Foundation.
+voting_duration_secs = 7200
+# Determines whether the network will start with a faucet, amongst other things.
+is_testnet = true
+# Tuesday, September 17, 2024 12:00:00.000 PM (UTC)
+genesis_timestamp_microseconds = 1726574400000000
+
+
+######################################### NODE PARAMETERS #########################################
+[chain_state_assembler]
+certified_block_cache_bucket_size = 50
+sync_retry_interval_in_secs = 1
+
+[synchronization.ws]
 # The path to the TLS certificate for the connection with the attached validator.
 consensus_client_cert_path = "./configs/client_supra_certificate.pem"
 # The path to the private key to be used when negotiating TLS connections.
@@ -347,14 +364,6 @@ consensus_client_private_key_path = "./configs/client_supra_key.pem"
 consensus_root_ca_cert_path = "./configs/ca_certificate.pem"
 # The websocket address of the attached validator.
 consensus_rpc = "ws://<VALIDATOR_IP>:26000"
-# If true, all components will attempt to load their previous state from disk. Otherwise,
-# all components will start in their default state. Should always be `true` for testnet and
-# mainnet.
-resume = true
-# The path to `supra_committees.json`.
-supra_committees_config = "./configs/supra_committees.json"
-# The number of seconds to wait before retrying a block sync request.
-sync_retry_interval_in_secs = 5
 
 # Parameters for the RPC Archive database. This database stores the indexes used to serve RPC API calls.
 [database_setup.dbs.archive.rocks_db]
@@ -432,9 +441,39 @@ mode = "Cors"
 url = "chrome-extension://hcjhpkgbmechpabifbggldplacolbkoh"
 description = "Starkey wallet extension"
 mode = "Cors"
+
+[[allowed_origin]]
+url = "https://supra.com"
+description = "Supra domain"
+mode = "Cors"
+
+[[allowed_origin]]
+url = "https://qa-spa.supra.com"
+description = "QA Supra domain"
+mode = "Cors"
+
+[[allowed_origin]]
+url = "https://qa-api.services.supra.com"
+description = "QA API Supra domain"
+mode = "Cors"
+
+[[allowed_origin]]
+url = "https://prod-api.services.supra.com"
+description = "Prod API Supra domain"
+mode = "Cors"
+
+[[allowed_origin]]
+url = "http://localhost:3000"
+description = "Localhost"
+mode = "Cors"
+
+[[allowed_origin]]
+url = "http://localhost:8080"
+description = "Localhost"
+mode = "Cors"
 '
 
-DOCKER_IMAGE="asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/${NODE_TYPE}-node:${NEW_IMAGE_VERSION}"
+DOCKER_IMAGE="asnapshotsia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/${NODE_TYPE}-node:${NEW_IMAGE_VERSION}"
 
 if [ "$NETWORK" = "mainnet" ]; then
     RCLONE_CONFIG="$MAINNET_RCLONE_CONFIG"
@@ -566,11 +605,7 @@ function migrate_rpc_profile(){
     echo "Migrating current profile....."    
     encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
     password=$(echo "$encoded_pswd" | openssl base64 -d -A) 
-     expect << EOF
-        spawn docker exec -it "$CONTAINER_NAME" /supra/rpc_node migrate-db "$HOST_SUPRA_HOME"/config.toml 
-        expect "password:" { send "$password\r" }
-        expect eof
-EOF
+    docker exec -it $CONTAINER_NAME /supra/rpc_node migrate-db ./configs/config.toml 
 }
 
 function rename_validator_identity(){
@@ -590,9 +625,6 @@ EOF
 }
 
 function start_rpc_node(){
-    docker cp $HOST_SUPRA_HOME/genesis.blob $CONTAINER_NAME:/supra/configs/
-    docker cp $HOST_SUPRA_HOME/config.toml $CONTAINER_NAME:/supra/configs/
-
     echo "Starting the RPC node......."
 
     /usr/bin/expect <<EOF
@@ -605,7 +637,7 @@ EOF
 
 function create_config_toml() {
     local config_toml="$HOST_SUPRA_HOME/config.toml"
-
+    echo "here is the validator ip: $VALIDATOR_IP"
     if ! [ -f "$config_toml" ]; then
         echo "$RPC_CONFIG_TOML" | sed "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" > "$config_toml"
     fi
@@ -689,8 +721,7 @@ function download_validator_static_configuration_files() {
 }
 
 function sync_validator_snapshots() {
-    docker stop "$CONTAINER_NAME"
-
+    
     if ! which rclone >/dev/null; then
         curl https://rclone.org/install.sh | sudo bash
     fi
@@ -704,7 +735,6 @@ function sync_validator_snapshots() {
 }
 
 function sync_rpc_snapshots() {
-    docker stop "$CONTAINER_NAME"
 
     if ! which rclone >/dev/null; then
         curl https://rclone.org/install.sh | sudo bash
@@ -732,7 +762,11 @@ function copy_rpc_root_config_files() {
     docker cp "$HOST_SUPRA_HOME"/genesis.blob "$CONTAINER_NAME:/supra/configs/"
 }
 
-
+function update_config_toml() {
+    rm -rf $HOST_SUPRA_HOME/config.toml
+    create_config_toml
+    copy_rpc_root_config_files
+}
 
 function update_validator_existing_container() {
     echo "Updating $CONTAINER_NAME..."
@@ -742,8 +776,10 @@ function update_validator_existing_container() {
     start_validator_docker_container
     migrate_validator_profile
     rename_validator_identity
+    if [ $SYNC_SNAPSHOT == "sync_snapshot" ]; then
+        sync_validator_snapshots
+    fi
     start_validator_node
-    sync_validator_snapshots
     echo "Container update completed."
 }
 
@@ -753,9 +789,12 @@ function update_rpc_existing_container() {
     maybe_update_container
 #    download_rpc_static_configuration_files
     start_rpc_docker_container
+    update_config_toml
     migrate_rpc_profile
-    # sync_rpc_snapshots
-    copy_rpc_root_config_files
+    if [ $SYNC_SNAPSHOT == "sync_snapshot" ]; then
+        sync_rpc_snapshots
+    fi
+    start_rpc_node
     echo "Container update completed."
 }
 
