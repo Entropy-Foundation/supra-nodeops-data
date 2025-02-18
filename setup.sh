@@ -11,13 +11,21 @@ NETWORK="$6"
 
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-CONFIG_FILE="$SCRIPT_DIR/operator_config_mainnet.toml"
+
+if [ "$NETWORK" == "testnet" ]; then
+    CONFIG_FILE="$SCRIPT_DIR/operator_config.toml"
+elif [ "$NETWORK" == "mainnet" ]; then
+    CONFIG_FILE="$SCRIPT_DIR/operator_config_mainnet.toml"
+fi
 
 if [ "$FUNCTION" == "setup" ]; then
     if [ "$NODE_TYPE" == "rpc" ]; then    
         VALIDATOR_IP="$7"
     fi
 fi
+function parse_toml() {
+        grep -w "$1" "$2" | cut -d'=' -f2- | tr -d ' "'
+}
 
 
 function basic_usage() {
@@ -516,7 +524,7 @@ function start_validator_docker_container() {
             -v "$HOST_SUPRA_HOME:/supra/configs" \
             -e "RUST_LOG=debug,sop2p=info,multistream_select=off,libp2p_swarm=off,yamux=off" \
             -e "SUPRA_HOME=/supra/configs/" \
-            -e "SUPRA_LOG_DIR=/supra/configs/rpc_logs" \
+            -e "SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
             -e "SUPRA_MAX_LOG_FILE_SIZE=500000000" \
             -e "SUPRA_MAX_UNCOMPRESSED_LOGS=20" \
             -e "SUPRA_MAX_LOG_FILES=40" \
@@ -534,7 +542,7 @@ function start_rpc_docker_container() {
             -v "$HOST_SUPRA_HOME:/supra/configs" \
             -e "RUST_LOG=debug,sop2p=info,multistream_select=off,libp2p_swarm=off,yamux=off" \
             -e "SUPRA_HOME=/supra/configs/" \
-            -e "SUPRA_LOG_DIR=/supra/configs/rpc_logs" \
+            -e "SUPRA_LOG_DIR=/supra/configs/rpc_node_logs" \
             -e "SUPRA_MAX_LOG_FILE_SIZE=500000000" \
             -e "SUPRA_MAX_UNCOMPRESSED_LOGS=20" \
             -e "SUPRA_MAX_LOG_FILES=40" \
@@ -547,8 +555,9 @@ function migrate_validator_profile(){
     encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
     password=$(echo "$encoded_pswd" | openssl base64 -d -A) 
      expect << EOF
-        spawn docker exec -it "$CONTAINER_NAME" ./supra/supra migrate 
-        expect "password:" { send "$password\r" }
+        spawn docker exec -it "$CONTAINER_NAME" /supra/supra migrate --network $NETWORK 
+        expect "Enter your password:" { send "$password\r" }
+	    expect "Enter your password:" { send "$password\r" }
         expect eof
 EOF
 }
@@ -558,7 +567,7 @@ function migrate_rpc_profile(){
     encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
     password=$(echo "$encoded_pswd" | openssl base64 -d -A) 
      expect << EOF
-        spawn docker exec -it "$CONTAINER_NAME" ./supra/rpc_node migrate-db "$HOST_SUPRA_HOME"/config.toml 
+        spawn docker exec -it "$CONTAINER_NAME" /supra/rpc_node migrate-db "$HOST_SUPRA_HOME"/config.toml 
         expect "password:" { send "$password\r" }
         expect eof
 EOF
@@ -574,7 +583,7 @@ function start_validator_node(){
     encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
     password=$(echo "$encoded_pswd" | openssl base64 -d -A)
     expect << EOF
-        spawn docker exec -it supra_mainnet_$CONTAINER_NAME /supra/supra node smr run
+        spawn docker exec -it $CONTAINER_NAME /supra/supra node smr run
         expect "password:" { send "$password\r" }
         expect eof
 EOF
@@ -729,7 +738,7 @@ function update_validator_existing_container() {
     echo "Updating $CONTAINER_NAME..."
     ensure_supra_home_is_absolute_path
     maybe_update_container
-    download_validator_static_configuration_files
+#    download_validator_static_configuration_files
     start_validator_docker_container
     migrate_validator_profile
     rename_validator_identity
@@ -742,7 +751,7 @@ function update_rpc_existing_container() {
     echo "Updating $CONTAINER_NAME..."
     ensure_supra_home_is_absolute_path
     maybe_update_container
-    download_rpc_static_configuration_files
+#    download_rpc_static_configuration_files
     start_rpc_docker_container
     migrate_rpc_profile
     # sync_rpc_snapshots
