@@ -776,7 +776,7 @@ function update_validator_existing_container() {
     start_validator_docker_container
     migrate_validator_profile
     rename_validator_identity
-    if [ $SYNC_SNAPSHOT == "sync_snapshot" ]; then
+    if [ "$SYNC_SNAPSHOT" == "sync_snapshot" ]; then
         sync_validator_snapshots
     fi
     start_validator_node
@@ -791,7 +791,7 @@ function update_rpc_existing_container() {
     start_rpc_docker_container
     update_config_toml
     migrate_rpc_profile
-    if [ $SYNC_SNAPSHOT == "sync_snapshot" ]; then
+    if [ "$SYNC_SNAPSHOT" == "sync_snapshot" ]; then
         sync_rpc_snapshots
     fi
     start_rpc_node
