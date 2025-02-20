@@ -640,12 +640,17 @@ function sync_snapshot() {
         rclone sync "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/archive" "$HOST_SUPRA_HOME/rpc_archive/"  --checkers=32 --progress
     fi
 }
-
-function start_validator_node(){
-    while [ -z "$CLI_PASSWORD" ]; do
-        read -r -s -p "Enter the password for your CLI profile: " CLI_PASSWORD
+function prompt_for_cli_password() {
+    local password=""
+    while [ -z "$password" ]; do
+        read -r -s -p "Enter the password for your CLI profile: " password
         echo ""  # Adds a newline after the password prompt
     done
+    echo "$password"
+}
+
+function start_validator_node(){
+    CLI_PASSWORD=$(prompt_for_cli_password)
     expect << EOF
         spawn docker exec -it $CONTAINER_NAME /supra/supra node smr run
         expect "password:" { send "$CLI_PASSWORD\r" }
