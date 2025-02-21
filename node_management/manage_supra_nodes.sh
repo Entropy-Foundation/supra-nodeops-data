@@ -360,11 +360,11 @@ function setup_usage() {
 }
 
 function update_usage() {
-    echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <validator_ip>" >&2
-
     if [ "$NODE_TYPE" == "validator" ]; then
+        echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network>" >&2
         validator_common_parameters
     elif [ "$NODE_TYPE" == "rpc" ]; then
+        echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <validator_ip>" >&2
         rpc_common_parameters
     else
         function_node_type_usage
@@ -408,6 +408,9 @@ function verify_setup() {
 
 function verify_update() {
     if ! verify_setup_update_common_arguments; then
+        update_usage
+    fi
+    if [ "$NODE_TYPE" == "rpc" ] && ! is_ipv4_address "$VALIDATOR_IP"; then
         update_usage
     fi
 }
