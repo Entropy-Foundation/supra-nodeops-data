@@ -307,7 +307,7 @@ function parse_args() {
             ;;
     esac
 
-    if [ "$FUNCTION" == "setup" ] && [ "$NODE_TYPE" == "rpc" ]; then
+    if ([ "$FUNCTION" == "setup" ] || [ "$FUNCTION" == "update" ]) && [ "$NODE_TYPE" == "rpc" ]; then
         VALIDATOR_IP="$7"
     fi
 }
@@ -582,7 +582,7 @@ function remove_old_docker_image() {
 
 function create_config_toml() {
     local config_toml="$HOST_SUPRA_HOME/config.toml"
-
+    
     if ! [ -f "$config_toml" ]; then
         echo "$RPC_CONFIG_TOML" | sed "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" > "$config_toml"
     fi
@@ -590,7 +590,7 @@ function create_config_toml() {
 
 function update_config_toml() {
     local config_toml="$HOST_SUPRA_HOME"/config.toml
-    local backup="$smr_settings".old
+    local backup="$config_toml".old
     # Create a backup of the existing node settings file in case the operator wants to copy custom
     # settings from it.
     mv "$config_toml" "$backup"
