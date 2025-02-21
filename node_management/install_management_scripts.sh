@@ -8,9 +8,8 @@ if ! which wget &>/dev/null; then
     exit 1
 fi
 
-mkdir -p .supra
-cd .supra
-wget --recursive --no-parent "https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/"
+mkdir -p .supra/node_management
+wget -O .supra/node_management/utils.sh https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/manage_supra_nodes.sh
+wget https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/manage_supra_nodes.sh
+wget https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/migrate_to_v8.0.2.sh
 
-cp node_management/manage_supra_nodes.sh ..
-cp node_management/migrate_to_v8.0.2.sh ..
