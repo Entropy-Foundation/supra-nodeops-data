@@ -83,7 +83,7 @@ function migrate_rpc() {
 function migrate_validator_profile() {
     prompt_for_cli_password
     expect << EOF
-        spawn docker exec -it "$CONTAINER_NAME" /supra/supra migrate --network $NETWORK 
+        spawn docker exec -it "$CONTAINER_NAME" /supra/supra migrate --network "$NETWORK"
         expect "Enter your password:" { send "$CLI_PASSWORD\r" }
 	    expect "Enter your password:" { send "$CLI_PASSWORD\r" }
         expect eof

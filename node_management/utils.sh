@@ -60,10 +60,9 @@ function current_docker_image() {
 function ensure_supra_home_is_absolute_path() {
     # Create the directory if it doesn't exist.
     mkdir -p "$HOST_SUPRA_HOME"
-    # Enter it and print the fully-qualified path in case it was given as a relative path.
+    # Enter it and get the fully-qualified path in case it was given as a relative path.
     cd "$HOST_SUPRA_HOME"
     HOST_SUPRA_HOME="$(pwd)"
-    echo "Path to SUPRA_HOME on the host machine: $HOST_SUPRA_HOME"
 }
 
 function prompt_for_cli_password() {
