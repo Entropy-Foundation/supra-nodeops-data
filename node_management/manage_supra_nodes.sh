@@ -360,7 +360,7 @@ function setup_usage() {
 }
 
 function update_usage() {
-    echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network>" >&2
+    echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <validator_ip>" >&2
 
     if [ "$NODE_TYPE" == "validator" ]; then
         validator_common_parameters
@@ -582,7 +582,7 @@ function remove_old_docker_image() {
 
 function create_config_toml() {
     local config_toml="$HOST_SUPRA_HOME/config.toml"
-    
+
     if ! [ -f "$config_toml" ]; then
         echo "$RPC_CONFIG_TOML" | sed "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" > "$config_toml"
     fi
