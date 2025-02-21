@@ -307,7 +307,7 @@ function parse_args() {
             ;;
     esac
 
-    if [ "$FUNCTION" == "setup" ] && [ "$NODE_TYPE" == "rpc" ]; then
+    if ([ "$FUNCTION" == "setup" ] || [ "$FUNCTION" == "update" ]) && [ "$NODE_TYPE" == "rpc" ]; then
         VALIDATOR_IP="$7"
     fi
 }
@@ -360,11 +360,11 @@ function setup_usage() {
 }
 
 function update_usage() {
-    echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network>" >&2
-
     if [ "$NODE_TYPE" == "validator" ]; then
+        echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network>" >&2
         validator_common_parameters
     elif [ "$NODE_TYPE" == "rpc" ]; then
+        echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <validator_ip>" >&2
         rpc_common_parameters
     else
         function_node_type_usage
@@ -393,15 +393,12 @@ function verify_setup_update_common_arguments() {
     is_semantic_version_id "$NEW_IMAGE_VERSION" \
     && verify_container_name \
     && verify_host_supra_home \
-    && verify_network
+    && verify_network \ 
+    || (["$NODE_TYPE" == "rpc" ] && ! is_ipv4_address "$VALIDATOR_IP")
 }
 
 function verify_setup() {
     if ! verify_setup_update_common_arguments; then
-        setup_usage
-    fi
-
-    if [ "$NODE_TYPE" == "rpc" ] && ! is_ipv4_address "$VALIDATOR_IP"; then
         setup_usage
     fi
 }
@@ -590,7 +587,7 @@ function create_config_toml() {
 
 function update_config_toml() {
     local config_toml="$HOST_SUPRA_HOME"/config.toml
-    local backup="$smr_settings".old
+    local backup="$config_toml".old
     # Create a backup of the existing node settings file in case the operator wants to copy custom
     # settings from it.
     mv "$config_toml" "$backup"
