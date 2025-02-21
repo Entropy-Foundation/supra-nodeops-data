@@ -9,7 +9,6 @@ if ! which wget &>/dev/null; then
 fi
 
 mkdir -p .supra/node_management
-wget -O .supra/node_management/utils.sh https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/manage_supra_nodes.sh
-wget https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/manage_supra_nodes.sh
-wget https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/migrate_to_v8.0.2.sh
-
+wget -O .supra/node_management/utils.sh https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/issue-644/node_management/utils.sh
+wget https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/issue-644/node_management/manage_supra_nodes.sh
+wget https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/issue-644/node_management/migrate_to_v8.0.2.sh
