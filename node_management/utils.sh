@@ -47,6 +47,11 @@ function verify_network() {
 function verify_node_type() {
     [ -n "$NODE_TYPE" ]
 }
+function verify_validator_ip(){
+    if [ "$NODE_TYPE" == "rpc" ] && ! is_ipv4_address "$VALIDATOR_IP"; then
+        setup_usage
+    fi
+}
 
 function current_docker_image() {
     if ! which jq &>/dev/null; then

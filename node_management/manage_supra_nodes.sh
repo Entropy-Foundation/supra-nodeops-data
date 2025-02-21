@@ -393,24 +393,18 @@ function verify_setup_update_common_arguments() {
     is_semantic_version_id "$NEW_IMAGE_VERSION" \
     && verify_container_name \
     && verify_host_supra_home \
-    && verify_network
+    && verify_network \ 
+    || (["$NODE_TYPE" == "rpc" ] && ! is_ipv4_address "$VALIDATOR_IP")
 }
 
 function verify_setup() {
     if ! verify_setup_update_common_arguments; then
         setup_usage
     fi
-
-    if [ "$NODE_TYPE" == "rpc" ] && ! is_ipv4_address "$VALIDATOR_IP"; then
-        setup_usage
-    fi
 }
 
 function verify_update() {
     if ! verify_setup_update_common_arguments; then
-        update_usage
-    fi
-    if [ "$NODE_TYPE" == "rpc" ] && ! is_ipv4_address "$VALIDATOR_IP"; then
         update_usage
     fi
 }
