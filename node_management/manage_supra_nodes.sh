@@ -608,7 +608,7 @@ function update_config_toml() {
     # Ensure that the settings file already exits. The user is expected to run `setup` before `update`.
     # If they have done this, then they must have set `HOST_SUPRA_HOME` incorrectly.
     if ! [ -f "$config_toml" ]; then
-        epoch "$config_toml does not exist. Please ensure that you have set <host_supra_home> correctly." >&2
+        echo "$config_toml does not exist. Please ensure that you have set <host_supra_home> correctly." >&2
         exit 3
     fi
 
@@ -626,7 +626,7 @@ function update_smr_settings_toml() {
     # Ensure that the settings file already exits. The user is expected to run `setup` before `update`.
     # If they have done this, then they must have set `HOST_SUPRA_HOME` incorrectly.
     if ! [ -f "$smr_settings" ]; then
-        epoch "$smr_settings does not exist. Please ensure that you have set <host_supra_home> correctly." >&2
+        echo "$smr_settings does not exist. Please ensure that you have set <host_supra_home> correctly." >&2
         exit 3
     fi
 
