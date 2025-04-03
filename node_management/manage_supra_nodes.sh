@@ -520,6 +520,44 @@ function download_rpc_static_configuration_files() {
     
 }
 
+function set_ulimit() {
+    local limits_file="/etc/security/limits.conf"
+    local sysctl_file="/etc/sysctl.conf"
+
+    # Define limits
+    local nofile_limit="* soft nofile 1048576\n* hard nofile 1048576"
+    local nproc_limit="* soft nproc 1048576\n* hard nproc 1048576"
+    local sysctl_limits=(
+        "fs.file-max=2097152"
+        "fs.inotify.max_user_instances=1024"
+        "fs.inotify.max_user_watches=1048576"
+        "net.core.somaxconn=65535"
+        "net.ipv4.tcp_max_syn_backlog=65535"
+        "net.ipv4.ip_local_port_range=1024 65000"
+        "net.ipv4.tcp_tw_reuse=1"
+    )
+
+    # Update limits.conf if missing
+    if ! grep -q "^\\*.*nofile" "$limits_file"; then
+        echo -e "$nofile_limit" | sudo tee -a "$limits_file"
+    fi
+    if ! grep -q "^\\*.*nproc" "$limits_file"; then
+        echo -e "$nproc_limit" | sudo tee -a "$limits_file"
+    fi
+
+    # Update sysctl.conf if missing
+    for param in "${sysctl_limits[@]}"; do
+        key=$(echo "$param" | cut -d= -f1)
+        if ! grep -q "^$key" "$sysctl_file"; then
+            echo "$param" | sudo tee -a "$sysctl_file"
+        fi
+    done
+
+    # Apply sysctl changes
+    sudo sysctl --system
+}
+
+
 function download_validator_static_configuration_files() {
     local ca_certificate="$HOST_SUPRA_HOME/ca_certificate.pem"
     local client_supra_certificate="$HOST_SUPRA_HOME/server_supra_certificate.pem"
@@ -568,7 +606,8 @@ function download_validator_static_configuration_files() {
 function setup() {
     echo "Setting up a new $NODE_TYPE node..."
     ensure_supra_home_is_absolute_path
-
+    set_ulimit
+    
     if is_validator; then
         start_validator_docker_container
         download_validator_static_configuration_files
