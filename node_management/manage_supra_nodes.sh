@@ -729,24 +729,6 @@ s3 =
 EOF
     fi
 
-    # Increase max open files limit only if not already set
-    if ! grep -q "^fs.file-max = 2097152" /etc/sysctl.conf; then
-        echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf > /dev/null
-        sudo sysctl -p > /dev/null
-    fi
-
-    # Update soft and hard nofile limits only if not already set
-    if ! grep -q "^\* soft nofile 65535" /etc/security/limits.conf; then
-        echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf > /dev/null
-    fi
-
-    if ! grep -q "^\* hard nofile 65535" /etc/security/limits.conf; then
-        echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf > /dev/null
-    fi
-    
-    # Temporary increase (for this session)
-    ulimit -n 65535
-
     # Set AWS CLI credentials and bucket name based on the selected network
     if [ "$NETWORK" == "mainnet" ]; then
         export AWS_ACCESS_KEY_ID="c64bed98a85ccd3197169bf7363ce94f"
