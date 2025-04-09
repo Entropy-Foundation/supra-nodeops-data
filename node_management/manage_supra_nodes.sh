@@ -733,9 +733,11 @@ function start_validator_node() {
     start_validator_docker_container
     prompt_for_cli_password
 
+    ESCAPED_PASSWORD=$(printf '%q' "$CLI_PASSWORD")
+
     expect << EOF
         spawn docker exec -it $CONTAINER_NAME /supra/supra node smr run
-        expect "password:" { send "$CLI_PASSWORD\r" }
+        expect "password:" { send "$ESCAPED_PASSWORD\r" }
         expect eof
 EOF
 }
@@ -789,7 +791,7 @@ EOF
         # Download store snapshots concurrently
         aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/smr_storage/" \
                 --endpoint-url "$ENDPOINT_URL" \
-                --size-only
+                --exact-timestamps
     elif is_rpc; then
         # Create the local directories if they don't exist
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
@@ -798,10 +800,10 @@ EOF
         # Run the two download commands concurrently in the background
         aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/rpc_store/" \
                 --endpoint-url "$ENDPOINT_URL" \
-                --size-only &
+                --exact-timestamps &
         aws s3 sync "s3://${BUCKET_NAME}/snapshots/archive/" "$HOST_SUPRA_HOME/rpc_archive/" \
                 --endpoint-url "$ENDPOINT_URL" \
-                --size-only &
+                --exact-timestamps &
         wait
     fi
 }
