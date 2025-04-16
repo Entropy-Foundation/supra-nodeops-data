@@ -22,9 +22,8 @@ function parse_args() {
 function basic_usage() {
     echo "Usage: ./$SCRIPT_NAME.sh <node_type> <[node_type_args...]>" >&2
     echo "Parameters:" >&2
-    echo "  - function: The function to execute: 'setup' or 'update' or 'start' or 'sync'." >&2
     node_type_usage
-    echo "  - function_args: The arguments required by the function. Run './$SCRIPT_NAME.sh <function>' for more details." >&2
+    echo "  - function_args: The arguments required for the node type. Run './$SCRIPT_NAME.sh <node_type>' for more details." >&2
     exit 1
 }
 
@@ -80,15 +79,6 @@ function migrate_rpc() {
 
 #---------------------------------------------------------- Validator ----------------------------------------------------------
 
-function migrate_validator_profile() {
-    prompt_for_cli_password
-    expect << EOF
-        spawn docker exec -it "$CONTAINER_NAME" /supra/supra migrate --network "$NETWORK"
-        expect "Enter your password:" { send "$CLI_PASSWORD\r" }
-	    expect "Enter your password:" { send "$CLI_PASSWORD\r" }
-        expect eof
-EOF
-}
 function migrate_validator_database() {
     prompt_for_cli_password
     expect << EOF
@@ -97,10 +87,7 @@ function migrate_validator_database() {
 	    expect "Enter your password:" { send "$CLI_PASSWORD\r" }
         expect eof
 EOF
-}
 
-function rename_validator_identity() {
-    cp "$HOST_SUPRA_HOME/validator_identity.pem" "$HOST_SUPRA_HOME/node_identity.pem"
 }
 
 function migrate_validator() {
