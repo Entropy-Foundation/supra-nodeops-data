@@ -254,14 +254,15 @@ backup_and_download_if_outdated() {
         new_version="$(echo "$new_version_full" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+')"
 
         if [ -z "$current_version" ]; then
+            cp "$file_path" "$backup_path"
             echo "No version found in $file_label. Downloading latest."
             wget -nc -O "$file_path" "$download_url"
             echo "Previous $file_label backed up to $backup_path"
         elif [ "$current_version" != "$new_version" ]; then
-                cp "$file_path" "$backup_path"
-                echo "Updating $file_label from version $current_version to $new_version"
-                wget -nc -O "$file_path" "$download_url"
-                echo "Previous $file_label backed up to $backup_path"
+            cp "$file_path" "$backup_path"
+            echo "Updating $file_label from version $current_version to $new_version"
+            wget -nc -O "$file_path" "$download_url"
+            echo "Previous $file_label backed up to $backup_path"
         fi
     else
         echo "$file_label not found. Downloading..."
