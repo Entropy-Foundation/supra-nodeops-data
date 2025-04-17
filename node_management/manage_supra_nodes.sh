@@ -21,6 +21,139 @@ acl = private
 no_check_bucket = true
 "
 
+# TODO: Move this to separate location and version it. The script should pull the input version.
+MAINNET_RPC_CONFIG_TOML='####################################### PROTOCOL PARAMETERS #######################################
+
+# The below parameters are fixed for the protocol and must be agreed upon by all node operators
+# at genesis. They may subsequently be updated via governance decisions.
+
+# Core protocol parameters.
+
+# A unique identifier for this instance of the Supra protocol. Prevents replay attacks across chains.
+chain_instance.chain_id = 8
+# The length of an epoch in seconds.
+chain_instance.epoch_duration_secs = 7200
+# The number of seconds that stake locked in a Stake Pool will automatically be locked up for when
+# its current lockup expires, if no request is made to unlock it.
+#
+# 48 hours.
+chain_instance.recurring_lockup_duration_secs = 172800
+# The number of seconds allocated for voting on governance proposals. Governance will initially be 
+# controlled by The Supra Foundation.
+#
+# 46 hours.
+chain_instance.voting_duration_secs = 165600
+# Determines whether the network will start with a faucet, amongst other things.
+chain_instance.is_testnet = false
+# Wednesday, Nov 20, 2024 12:00:00.000 AM (UTC).
+chain_instance.genesis_timestamp_microseconds = 1732060800000000
+
+
+######################################### NODE PARAMETERS #########################################
+
+# The below parameters are node-specific and may be configured as required by the operator.
+
+# The port on which the node should listen for incoming RPC requests.
+bind_addr = "0.0.0.0:30000"
+# If `true` then blocks will not be verified before execution. This value should be `false`
+# unless you also control the node from which this RPC node is receiving blocks.
+block_provider_is_trusted = false
+# The path to the TLS certificate for the connection with the attached validator.
+consensus_client_cert_path = "./configs/client_supra_certificate.pem"
+# The path to the private key to be used when negotiating TLS connections.
+consensus_client_private_key_path = "./configs/client_supra_key.pem"
+# The path to the TLS root certificate authority certificate.
+consensus_root_ca_cert_path = "./configs/ca_certificate.pem"
+# The websocket address of the attached validator.
+consensus_rpc = "ws://<VALIDATOR_IP>:26000"
+# If true, all components will attempt to load their previous state from disk. Otherwise,
+# all components will start in their default state. Should always be `true` for testnet and
+# mainnet.
+resume = true
+# The path to `supra_committees.json`.
+supra_committees_config = "./configs/supra_committees.json"
+# The number of seconds to wait before retrying a block sync request.
+sync_retry_interval_in_secs = 1
+
+# Parameters for the RPC Archive database. This database stores the indexes used to serve RPC API calls.
+[database_setup.dbs.archive.rocks_db]
+# The path at which the database should be created.
+path = "./configs/rpc_archive"
+# Whether snapshots should be taken of the database.
+enable_snapshots = true
+
+# Parameters for the DKG database.
+[database_setup.dbs.ledger.rocks_db]
+# The path at which the database should be created.
+path = "./configs/rpc_ledger"
+
+# Parameters for the blockchain database.
+[database_setup.dbs.chain_store.rocks_db]
+# The path at which the database should be created.
+path = "./configs/rpc_store"
+# Whether snapshots should be taken of the database.
+enable_snapshots = true
+
+# Parameters for the database snapshot service.
+[database_setup.snapshot_config]
+# The number of snapshots to retain, including the latest.
+depth = 2
+# The interval between snapshots in seconds.
+interval_in_seconds = 1800
+# The path at which the snapshots should be stored.
+path = "./configs/snapshot"
+# The number of times to retry a snapshot in the event that it fails unexpectedly.
+retry_count = 3
+# The interval in seconds to wait before retring a snapshot.
+retry_interval_in_seconds = 5
+
+# CORS settings for RPC API requests.
+[[allowed_origin]]
+url = "https://rpc-mainnet.supra.com"
+description = "RPC For Supra"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet1.supra.com"
+description = "RPC For nodeops group1"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet2.supra.com"
+description = "RPC For nodeops group2"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet3.supra.com"
+description = "RPC For nodeops group3"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet4.supra.com"
+description = "RPC For nodeops group4"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet5.supra.com"
+description = "RPC For nodeops group5"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-wallet-mainnet.supra.com"
+description = "RPC For Supra Wallet"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-suprascan-mainnet.supra.com"
+description = "RPC For suprascan"
+mode = "Server"
+
+[[allowed_origin]]
+url = "http://localhost:27000"
+description = "LocalNet"
+mode = "Server"
+'
+
 TESTNET_RCLONE_CONFIG_NAME="cloudflare-r2-testnet"
 TESTNET_RCLONE_CONFIG="[$TESTNET_RCLONE_CONFIG_NAME]
 type = s3
@@ -32,6 +165,126 @@ endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
 acl = private
 no_check_bucket = true
 "
+
+# TODO: Move this to separate location and version it. The script should pull the input version.
+TESTNET_RPC_CONFIG_TOML='####################################### PROTOCOL PARAMETERS #######################################
+
+# The below parameters are fixed for the protocol and must be agreed upon by all node operators
+# at genesis. They may subsequently be updated via governance decisions.
+
+# Core protocol parameters.
+# The below parameters are node-specific and may be configured as required by the operator.
+
+# The port on which the node should listen for incoming RPC requests.
+bind_addr = "0.0.0.0:26000"
+# If `true` then blocks will not be verified before execution. This value should be `false`
+# unless you also control the node from which this RPC node is receiving blocks.
+block_provider_is_trusted = true
+resume = true
+# The path to `supra_committees.json`.
+supra_committees_config = "./configs/supra_committees.json"
+consensus_access_tokens = []
+
+# A unique identifier for this instance of the Supra protocol. Prevents replay attacks across chains.
+[chain_instance]
+chain_id = 6
+# The length of an epoch in seconds.
+epoch_duration_secs = 7200
+# The number of seconds that stake locked in a Stake Pool will automatically be locked up for when
+# its current lockup expires, if no request is made to unlock it.
+recurring_lockup_duration_secs = 14400
+# The number of seconds allocated for voting on governance proposals. Governance will initially be controlled by The Supra Foundation.
+voting_duration_secs = 7200
+# Determines whether the network will start with a faucet, amongst other things.
+is_testnet = true
+# Tuesday, September 17, 2024 12:00:00.000 PM (UTC)
+genesis_timestamp_microseconds = 1726574400000000
+
+
+######################################### NODE PARAMETERS #########################################
+[chain_state_assembler]
+certified_block_cache_bucket_size = 50
+sync_retry_interval_in_secs = 1
+
+[synchronization.ws]
+# The path to the TLS certificate for the connection with the attached validator.
+consensus_client_cert_path = "./configs/client_supra_certificate.pem"
+# The path to the private key to be used when negotiating TLS connections.
+consensus_client_private_key_path = "./configs/client_supra_key.pem"
+# The path to the TLS root certificate authority certificate.
+consensus_root_ca_cert_path = "./configs/ca_certificate.pem"
+# The websocket address of the attached validator.
+consensus_rpc = "ws://<VALIDATOR_IP>:26000"
+
+# Parameters for the RPC Archive database. This database stores the indexes used to serve RPC API calls.
+[database_setup.dbs.archive.rocks_db]
+# The path at which the database should be created.
+path = "./configs/rpc_archive"
+# Whether snapshots should be taken of the database.
+enable_snapshots = true
+
+# Parameters for the DKG database.
+[database_setup.dbs.ledger.rocks_db]
+# The path at which the database should be created.
+path = "./configs/rpc_ledger"
+
+# Parameters for the blockchain database.
+[database_setup.dbs.chain_store.rocks_db]
+# The path at which the database should be created.
+path = "./configs/rpc_store"
+# Whether snapshots should be taken of the database.
+enable_snapshots = true
+
+# Parameters for the database snapshot service.
+[database_setup.snapshot_config]
+# The number of snapshots to retain, including the latest.
+depth = 2
+# The interval between snapshots in seconds.
+interval_in_seconds = 1800
+# The path at which the snapshots should be stored.
+path = "./configs/snapshot"
+# The number of times to retry a snapshot in the event that it fails unexpectedly.
+retry_count = 3
+# The interval in seconds to wait before retrying a snapshot.
+retry_interval_in_seconds = 5
+
+# CORS settings for RPC API requests. The below settings are the default values required for use in RPC nodes run by validator node operators. They are optional for non-validators.
+[[allowed_origin]]
+url = "https://rpc-testnet.supra.com"
+description = "RPC For Supra Scan and Faucet"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-testnet1.supra.com"
+description = "RPC For nodeops group1"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-testnet2.supra.com"
+description = "RPC For nodeops group2"
+mode = "Server"
+
+[[allowed_origin]]
+
+url = "https://rpc-testnet3.supra.com"
+description = "RPC For nodeops group3"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-testnet4.supra.com"
+description = "RPC For nodeops group4"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-testnet5.supra.com"
+description = "RPC For nodeops group5"
+mode = "Server"
+
+[[allowed_origin]]
+url = "http://localhost:27000"
+description = "LocalNet"
+mode = "Server"
+'
 
 function is_setup() {
     [[ "$FUNCTION" == "setup" ]]
@@ -233,42 +486,6 @@ function start_rpc_docker_container() {
             --net=host \
             -itd "asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/rpc-node:${NEW_IMAGE_VERSION}"
 }
-#---------------------------------------------------------- Utility ----------------------------------------------------------
-
-# Download a file only if it is missing or its version is outdated.
-# Creates a timestamped backup if the file exists and gets replaced.
-# Usage:
-#   backup_and_download_if_outdated <file_path> <download_url> <new_version> [<label>]
-backup_and_download_if_outdated() {
-    local file_path="$1"
-    local download_url="$2"
-    local new_version_full="$3"
-    local file_label="${4:-$file_path}"
-
-    if [ -f "$file_path" ]; then
-        local backup_path="${file_path}.bak.$(date +%s)"
-
-        local current_version
-        current_version="$(grep -oP '^#\s*Version:\s*v?\K[0-9]+\.[0-9]+\.[0-9]+' "$file_path" || echo "")"
-        local new_version
-        new_version="$(echo "$new_version_full" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+')"
-
-        if [ -z "$current_version" ]; then
-            cp "$file_path" "$backup_path"
-            echo "No version found in $file_label. Downloading latest."
-            wget -nc -O "$file_path" "$download_url"
-            echo "Previous $file_label backed up to $backup_path"
-        elif [ "$current_version" != "$new_version" ]; then
-            cp "$file_path" "$backup_path"
-            echo "Updating $file_label from version $current_version to $new_version"
-            wget -nc -O "$file_path" "$download_url"
-            echo "Previous $file_label backed up to $backup_path"
-        fi
-    else
-        echo "$file_label not found. Downloading..."
-        wget -nc -O "$file_path" "$download_url"
-    fi
-}
 
 #---------------------------------------------------------- Setup ----------------------------------------------------------
 
@@ -277,7 +494,6 @@ function download_rpc_static_configuration_files() {
     local client_supra_certificate="$HOST_SUPRA_HOME/client_supra_certificate.pem"
     local client_supra_key="$HOST_SUPRA_HOME/client_supra_key.pem"
     local supra_committees="$HOST_SUPRA_HOME/supra_committees.json"
-    local config_toml = "$HOST_SUPRA_HOME/config.toml"
     local genesis_blob="$HOST_SUPRA_HOME/genesis.blob"
 
     # Download the TLS certificates and keys.
@@ -293,10 +509,6 @@ function download_rpc_static_configuration_files() {
         wget -nc -O "$client_supra_key" "https://${STATIC_SOURCE}.supra.com/certificates/client_supra_key.pem"
     fi
 
-    # Download config.toml if not present or version is missing/lower than NEW_IMAGE_VERSION
-    backup_and_download_if_outdated "$config_toml" "https://${STATIC_SOURCE}.supra.com/configs/config.toml" "$NEW_IMAGE_VERSION" "config.toml"
-
-    
     # And the Genesis Blob and Genesis Committee files.
     if ! [ -f "$supra_committees" ]; then
         wget -nc -O "$supra_committees" "https://${STATIC_SOURCE}.supra.com/configs/supra_committees.json"
@@ -378,8 +590,9 @@ function download_validator_static_configuration_files() {
         wget -nc -O "$genesis_blob" "https://${STATIC_SOURCE}.supra.com/configs/genesis.blob"
     fi
     
-    # Download smr_settings.toml if not present or version is missing/lower than NEW_IMAGE_VERSION
-    backup_and_download_if_outdated "$smr_settings" "https://${STATIC_SOURCE}.supra.com/configs/smr_settings.toml" "$NEW_IMAGE_VERSION" "smr_settings.toml"
+    if ! [ -f "$smr_settings" ]; then
+        wget -nc -O "$smr_settings" "https://${STATIC_SOURCE}.supra.com/configs/smr_settings.toml"
+    fi
 
     if ! [ -f "$genesis_configs" ]; then
         wget -nc -O "$genesis_configs" "https://${STATIC_SOURCE}.supra.com/configs/genesis_configs.json"
