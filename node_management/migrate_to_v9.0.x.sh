@@ -81,7 +81,7 @@ function migrate_rpc() {
 
 function migrate_validator_database() {
     echo "Migrating the Validator Database"
-    docker exec -it "$CONTAINER_NAME" /supra/supra migrate -p ./configs/smr_settings.toml
+    docker exec -it "$CONTAINER_NAME" /supra/supra data migrate -p ./configs/smr_settings.toml
     echo "Migration Complete."
 }
 
