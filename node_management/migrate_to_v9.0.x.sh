@@ -23,7 +23,7 @@ function basic_usage() {
     echo "Usage: ./$SCRIPT_NAME.sh <node_type> <[node_type_args...]>" >&2
     echo "Parameters:" >&2
     node_type_usage
-    echo "  - function_args: The arguments required for the node type. Run './$SCRIPT_NAME.sh <node_type>' for more details." >&2
+    echo "  - node_type_args: The arguments required for the node type. Run './$SCRIPT_NAME.sh <node_type>' for more details." >&2
     exit 1
 }
 
@@ -80,14 +80,9 @@ function migrate_rpc() {
 #---------------------------------------------------------- Validator ----------------------------------------------------------
 
 function migrate_validator_database() {
-    prompt_for_cli_password
-    expect << EOF
-        spawn docker exec -it "$CONTAINER_NAME" /supra/supra migrate -p ./configs/smr_settings.toml
-        expect "Enter your password:" { send "$CLI_PASSWORD\r" }
-	    expect "Enter your password:" { send "$CLI_PASSWORD\r" }
-        expect eof
-EOF
-
+    echo "Migrating the Validator Database"
+    docker exec -it "$CONTAINER_NAME" /supra/supra migrate -p ./configs/smr_settings.toml
+    echo "Migration Complete."
 }
 
 function migrate_validator() {

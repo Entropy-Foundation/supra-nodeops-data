@@ -233,6 +233,43 @@ function start_rpc_docker_container() {
             --net=host \
             -itd "asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/rpc-node:${NEW_IMAGE_VERSION}"
 }
+#---------------------------------------------------------- Utility ----------------------------------------------------------
+
+# Download a file only if it is missing or its version is outdated.
+# Creates a timestamped backup if the file exists and gets replaced.
+# Usage:
+#   backup_and_download_if_outdated <file_path> <download_url> <new_version> [<label>]
+backup_and_download_if_outdated() {
+    local file_path="$1"
+    local download_url="$2"
+    local new_version_full="$3"
+    local file_label="${4:-$file_path}"
+
+    if [ -f "$file_path" ]; then
+        local backup_path="${file_path}.bak.$(date +%s)"
+        cp "$file_path" "$backup_path"
+
+        local current_version
+        current_version="$(grep -oP '^#\s*Version:\s*v?\K[0-9]+\.[0-9]+\.[0-9]+' "$file_path" || echo "")"
+        local new_version
+        new_version="$(echo "$new_version_full" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+')"
+
+        if [ -z "$current_version" ]; then
+            echo "No version found in $file_label. Downloading latest."
+            wget -nc -O "$file_path" "$download_url"
+            echo "Previous $file_label backed up to $backup_path"
+        elif [ "$current_version" != "$new_version" ]; then
+            if [ "$(printf '%s\n' "$current_version" "$new_version" | sort -V | head -n1)" != "$new_version" ]; then
+                echo "Updating $file_label from version $current_version to $new_version"
+                wget -nc -O "$file_path" "$download_url"
+                echo "Previous $file_label backed up to $backup_path"
+            fi
+        fi
+    else
+        echo "$file_label not found. Downloading..."
+        wget -nc -O "$file_path" "$download_url"
+    fi
+}
 
 #---------------------------------------------------------- Setup ----------------------------------------------------------
 
@@ -258,22 +295,8 @@ function download_rpc_static_configuration_files() {
     fi
 
     # Download config.toml if not present or version is missing/lower than NEW_IMAGE_VERSION
-    if ! [ -f "$config_toml" ]; then
-        wget -nc -O "$config_toml" "https://${STATIC_SOURCE}.supra.com/configs/config.toml"
-    else
-        current_version=$(grep -oP '^#\s*Version:\s*v?\K[0-9]+\.[0-9]+\.[0-9]+' "$config_toml" || echo "")
-        new_version=$(echo "$NEW_IMAGE_VERSION" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+')
+    backup_and_download_if_outdated "$config_toml" "https://${STATIC_SOURCE}.supra.com/configs/config.toml" "$NEW_IMAGE_VERSION" "config.toml"
 
-        if [ -z "$current_version" ]; then
-            echo "No version found in config.toml. Downloading latest."
-            wget -nc -O "$config_toml" "https://${STATIC_SOURCE}.supra.com/configs/config.toml"
-        elif [ "$current_version" != "$new_version" ]; then
-            if [ "$(printf '%s\n' "$current_version" "$new_version" | sort -V | head -n1)" != "$new_version" ]; then
-                echo "Updating config.toml from version $current_version to $new_version"
-                wget -nc -O "$config_toml" "https://${STATIC_SOURCE}.supra.com/configs/config.toml"
-            fi
-        fi
-    fi
     
     # And the Genesis Blob and Genesis Committee files.
     if ! [ -f "$supra_committees" ]; then
@@ -357,22 +380,7 @@ function download_validator_static_configuration_files() {
     fi
     
     # Download smr_settings.toml if not present or version is missing/lower than NEW_IMAGE_VERSION
-    if ! [ -f "$smr_settings" ]; then
-        wget -nc -O "$smr_settings" "https://${STATIC_SOURCE}.supra.com/configs/smr_settings.toml"
-    else
-        current_version=$(grep -oP '^#\s*Version:\s*v?\K[0-9]+\.[0-9]+\.[0-9]+' "$smr_settings" || echo "")
-        new_version=$(echo "$NEW_IMAGE_VERSION" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+')
-
-        if [ -z "$current_version" ]; then
-            echo "No version found in smr_settings.toml. Downloading latest."
-            wget -nc -O "$smr_settings" "https://${STATIC_SOURCE}.supra.com/configs/smr_settings.toml"
-        elif [ "$current_version" != "$new_version" ]; then
-            if [ "$(printf '%s\n' "$current_version" "$new_version" | sort -V | head -n1)" != "$new_version" ]; then
-                echo "Updating smr_settings.toml from version $current_version to $new_version"
-                wget -nc -O "$smr_settings" "https://${STATIC_SOURCE}.supra.com/configs/smr_settings.toml"
-            fi
-        fi
-    fi
+    backup_and_download_if_outdated "$smr_settings" "https://${STATIC_SOURCE}.supra.com/configs/smr_settings.toml" "$NEW_IMAGE_VERSION" "smr_settings.toml"
 
     if ! [ -f "$genesis_configs" ]; then
         wget -nc -O "$genesis_configs" "https://${STATIC_SOURCE}.supra.com/configs/genesis_configs.json"
