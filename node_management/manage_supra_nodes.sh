@@ -247,7 +247,6 @@ backup_and_download_if_outdated() {
 
     if [ -f "$file_path" ]; then
         local backup_path="${file_path}.bak.$(date +%s)"
-        cp "$file_path" "$backup_path"
 
         local current_version
         current_version="$(grep -oP '^#\s*Version:\s*v?\K[0-9]+\.[0-9]+\.[0-9]+' "$file_path" || echo "")"
@@ -259,11 +258,10 @@ backup_and_download_if_outdated() {
             wget -nc -O "$file_path" "$download_url"
             echo "Previous $file_label backed up to $backup_path"
         elif [ "$current_version" != "$new_version" ]; then
-            if [ "$(printf '%s\n' "$current_version" "$new_version" | sort -V | head -n1)" != "$new_version" ]; then
+                cp "$file_path" "$backup_path"
                 echo "Updating $file_label from version $current_version to $new_version"
                 wget -nc -O "$file_path" "$download_url"
                 echo "Previous $file_label backed up to $backup_path"
-            fi
         fi
     else
         echo "$file_label not found. Downloading..."
