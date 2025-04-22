@@ -400,7 +400,7 @@ function setup() {
         download_validator_static_configuration_files
     elif is_rpc; then
         start_rpc_docker_container
-        create_config_toml
+        # create_config_toml
         download_rpc_static_configuration_files
     fi
 
@@ -441,7 +441,8 @@ function update_config_toml() {
     # Create a backup of the existing node settings file in case the operator wants to copy custom
     # settings from it.
     mv "$config_toml" "$backup"
-    create_config_toml
+    # create_config_toml
+    download_rpc_static_configuration_files
     echo "Moved $config_toml to $backup. You will need to re-apply any custom config to the new version of the file."
 }
 
@@ -565,7 +566,10 @@ EOF
     elif [ "$NETWORK" == "testnet" ]; then
         export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
         export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
-        BUCKET_NAME="testnet-snapshot"
+        if is_validator; then
+            BUCKET_NAME="testnet-validator-snapshot"
+        elif is_rpc; then
+            BUCKET_NAME="testnet-snapshot"
     fi
 
     # Define the custom endpoint for Cloudflare R2
@@ -613,8 +617,13 @@ function main() {
         RCLONE_CONFIG="$TESTNET_RCLONE_CONFIG"
         RCLONE_CONFIG_HEADER="$TESTNET_RCLONE_CONFIG_NAME"
         RPC_CONFIG_TOML="$TESTNET_RPC_CONFIG_TOML"
-        SNAPSHOT_ROOT="testnet-snapshot"
-        STATIC_SOURCE="testnet-snapshot"
+        if is_validator; then
+            SNAPSHOT_ROOT="testnet-validator-snapshot"
+            STATIC_SOURCE="testnet-validator-snapshot"
+        elif is_rpc; then
+            SNAPSHOT_ROOT="testnet-snapshot"
+            STATIC_SOURCE="testnet-snapshot"
+        fi
     fi
 
     if is_setup; then
