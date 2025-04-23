@@ -18,6 +18,7 @@ secret_access_key = 0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae
 region = auto
 endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
 acl = private
+
 no_check_bucket = true
 "
 
@@ -401,6 +402,7 @@ function setup() {
     elif is_rpc; then
         start_rpc_docker_container
         download_rpc_static_configuration_files
+        create_config_toml
     fi
 
     echo "$NODE_TYPE node setup completed."
@@ -494,6 +496,7 @@ function maybe_update_container() {
 function update() {
     ensure_supra_home_is_absolute_path
     maybe_update_container
+    create_config_toml
 }
 
 #---------------------------------------------------------- Start ----------------------------------------------------------
