@@ -619,13 +619,8 @@ function main() {
         RCLONE_CONFIG="$TESTNET_RCLONE_CONFIG"
         RCLONE_CONFIG_HEADER="$TESTNET_RCLONE_CONFIG_NAME"
         RPC_CONFIG_TOML="$TESTNET_RPC_CONFIG_TOML"
-        if is_validator; then
-            SNAPSHOT_ROOT="testnet-validator-snapshot"
-            STATIC_SOURCE="testnet-validator-snapshot"
-        elif is_rpc; then
-            SNAPSHOT_ROOT="testnet-snapshot"
-            STATIC_SOURCE="testnet-snapshot"
-        fi
+        SNAPSHOT_ROOT="testnet-snapshot"
+        STATIC_SOURCE="testnet-snapshot"
     fi
 
     if is_setup; then
