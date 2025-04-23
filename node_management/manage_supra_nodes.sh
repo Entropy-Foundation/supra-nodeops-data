@@ -400,7 +400,6 @@ function setup() {
         download_validator_static_configuration_files
     elif is_rpc; then
         start_rpc_docker_container
-        # create_config_toml
         download_rpc_static_configuration_files
     fi
 
@@ -441,7 +440,6 @@ function update_config_toml() {
     # Create a backup of the existing node settings file in case the operator wants to copy custom
     # settings from it.
     mv "$config_toml" "$backup"
-    # create_config_toml
     download_rpc_static_configuration_files
     echo "Moved $config_toml to $backup. You will need to re-apply any custom config to the new version of the file."
 }
@@ -570,6 +568,7 @@ EOF
             BUCKET_NAME="testnet-validator-snapshot"
         elif is_rpc; then
             BUCKET_NAME="testnet-snapshot"
+        fi
     fi
 
     # Define the custom endpoint for Cloudflare R2
