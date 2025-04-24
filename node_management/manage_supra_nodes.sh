@@ -18,7 +18,6 @@ secret_access_key = 0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae
 region = auto
 endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
 acl = private
-
 no_check_bucket = true
 "
 
@@ -390,6 +389,13 @@ function download_validator_static_configuration_files() {
         wget -nc -O "$genesis_config_arbitrary_data" "https://${STATIC_SOURCE}.supra.com/configs/genesis_config_arbitrary_data.json"
     fi
 }
+function update_validator_in_config_toml() {
+    local config_toml="$HOST_SUPRA_HOME/config.toml"
+
+    if ! [ -f "$config_toml" ]; then
+        echo "$RPC_CONFIG_TOML" | sed "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" > "$config_toml"
+    fi
+}
 
 function setup() {
     echo "Setting up a new $NODE_TYPE node..."
@@ -402,7 +408,7 @@ function setup() {
     elif is_rpc; then
         start_rpc_docker_container
         download_rpc_static_configuration_files
-        create_config_toml
+        update_validator_in_config_toml
     fi
 
     echo "$NODE_TYPE node setup completed."
@@ -420,13 +426,7 @@ function remove_old_docker_image() {
     docker rmi "$old_image" &>/dev/null
 }
 
-function create_config_toml() {
-    local config_toml="$HOST_SUPRA_HOME/config.toml"
 
-    if ! [ -f "$config_toml" ]; then
-        echo "$RPC_CONFIG_TOML" | sed "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" > "$config_toml"
-    fi
-}
 
 function update_config_toml() {
     local config_toml="$HOST_SUPRA_HOME"/config.toml
@@ -496,7 +496,7 @@ function maybe_update_container() {
 function update() {
     ensure_supra_home_is_absolute_path
     maybe_update_container
-    create_config_toml
+    update_validator_in_config_toml
 }
 
 #---------------------------------------------------------- Start ----------------------------------------------------------
