@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 SCRIPT_NAME="manage_supra_nodes"
 
 # This script is expected to be installed with `install_management_scripts.sh`, which
@@ -8,30 +8,6 @@ SCRIPT_NAME="manage_supra_nodes"
 source "$SCRIPT_DIR/.supra/node_management/utils.sh"
 
 set -e
-
-MAINNET_RCLONE_CONFIG_NAME="cloudflare-r2-mainnet"
-MAINNET_RCLONE_CONFIG="[$MAINNET_RCLONE_CONFIG_NAME]
-type = s3
-provider = Cloudflare
-access_key_id = c64bed98a85ccd3197169bf7363ce94f
-secret_access_key = 0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7
-region = auto
-endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
-acl = private
-no_check_bucket = true
-"
-
-TESTNET_RCLONE_CONFIG_NAME="cloudflare-r2-testnet"
-TESTNET_RCLONE_CONFIG="[$TESTNET_RCLONE_CONFIG_NAME]
-type = s3
-provider = Cloudflare
-access_key_id = 229502d7eedd0007640348c057869c90
-secret_access_key = 799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949
-region = auto
-endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
-acl = private
-no_check_bucket = true
-"
 
 function is_setup() {
     [[ "$FUNCTION" == "setup" ]]
@@ -54,7 +30,7 @@ function parse_args() {
     NODE_TYPE="$2"
 
     case "$FUNCTION" in
-        setup|update)
+        setup | update)
             NEW_IMAGE_VERSION="$3"
             CONTAINER_NAME="$4"
             HOST_SUPRA_HOME="$5"
@@ -153,11 +129,11 @@ function sync_usage() {
 }
 
 function verify_setup_update_common_arguments() {
-    is_semantic_version_id "$NEW_IMAGE_VERSION" \
-    && verify_container_name \
-    && verify_host_supra_home \
-    && verify_network \
-    && (is_validator || is_ipv4_address "$VALIDATOR_IP")
+    is_semantic_version_id "$NEW_IMAGE_VERSION" &&
+        verify_container_name &&
+        verify_host_supra_home &&
+        verify_network &&
+        (is_validator || is_ipv4_address "$VALIDATOR_IP")
 }
 
 function verify_setup() {
@@ -201,8 +177,8 @@ function verify_args() {
 function start_validator_docker_container() {
     local user_id="$(id -u)"
     local group_id="$(id -g)"
-    docker start "$CONTAINER_NAME" &>/dev/null \
-        || docker run \
+    docker start "$CONTAINER_NAME" &>/dev/null ||
+        docker run \
             --name "$CONTAINER_NAME" \
             --user "${user_id}:${group_id}" \
             -v "$HOST_SUPRA_HOME:/supra/configs" \
@@ -219,8 +195,8 @@ function start_validator_docker_container() {
 function start_rpc_docker_container() {
     local user_id="$(id -u)"
     local group_id="$(id -g)"
-    docker start "$CONTAINER_NAME" &>/dev/null \
-        || docker run \
+    docker start "$CONTAINER_NAME" &>/dev/null ||
+        docker run \
             --name "$CONTAINER_NAME" \
             --user "${user_id}:${group_id}" \
             -v "$HOST_SUPRA_HOME:/supra/configs" \
@@ -233,6 +209,7 @@ function start_rpc_docker_container() {
             --net=host \
             -itd "asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/rpc-node:${NEW_IMAGE_VERSION}"
 }
+
 #---------------------------------------------------------- Utility ----------------------------------------------------------
 
 # Download a file only if it is missing or its version is outdated.
@@ -247,11 +224,8 @@ backup_and_download_if_outdated() {
 
     if [ -f "$file_path" ]; then
         local backup_path="${file_path}.bak.$(date +%s)"
-
-        local current_version
-        current_version="$(grep -oP '^#\s*Version:\s*v?\K[0-9]+\.[0-9]+\.[0-9]+' "$file_path" || echo "")"
-        local new_version
-        new_version="$(echo "$new_version_full" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+')"
+        local current_version="$(grep -oP '^#\s*Version:\s*v?\K[0-9]+\.[0-9]+\.[0-9]+' "$file_path" || echo "")"
+        local new_version="$(echo "$new_version_full" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+')"
 
         if [ -z "$current_version" ]; then
             cp "$file_path" "$backup_path"
@@ -296,7 +270,6 @@ function download_rpc_static_configuration_files() {
     # Download config.toml if not present or version is missing/lower than NEW_IMAGE_VERSION
     backup_and_download_if_outdated "$config_toml" "https://${STATIC_SOURCE}.supra.com/configs/config.toml" "$NEW_IMAGE_VERSION" "config.toml"
 
-    
     # And the Genesis Blob and Genesis Committee files.
     if ! [ -f "$supra_committees" ]; then
         wget -nc -O "$supra_committees" "https://${STATIC_SOURCE}.supra.com/configs/supra_committees.json"
@@ -305,7 +278,7 @@ function download_rpc_static_configuration_files() {
     if ! [ -f "$genesis_blob" ]; then
         wget -nc -O "$genesis_blob" "https://${STATIC_SOURCE}.supra.com/configs/genesis.blob"
     fi
-    
+
 }
 
 function set_ulimit() {
@@ -345,7 +318,6 @@ function set_ulimit() {
     sudo sysctl --system
 }
 
-
 function download_validator_static_configuration_files() {
     local ca_certificate="$HOST_SUPRA_HOME/ca_certificate.pem"
     local client_supra_certificate="$HOST_SUPRA_HOME/server_supra_certificate.pem"
@@ -377,7 +349,7 @@ function download_validator_static_configuration_files() {
     if ! [ -f "$genesis_blob" ]; then
         wget -nc -O "$genesis_blob" "https://${STATIC_SOURCE}.supra.com/configs/genesis.blob"
     fi
-    
+
     # Download smr_settings.toml if not present or version is missing/lower than NEW_IMAGE_VERSION
     backup_and_download_if_outdated "$smr_settings" "https://${STATIC_SOURCE}.supra.com/configs/smr_settings.toml" "$NEW_IMAGE_VERSION" "smr_settings.toml"
 
@@ -389,11 +361,12 @@ function download_validator_static_configuration_files() {
         wget -nc -O "$genesis_config_arbitrary_data" "https://${STATIC_SOURCE}.supra.com/configs/genesis_config_arbitrary_data.json"
     fi
 }
+
 function update_validator_in_config_toml() {
     local config_toml="$HOST_SUPRA_HOME/config.toml"
 
     if ! [ -f "$config_toml" ]; then
-        echo "$RPC_CONFIG_TOML" | sed "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" > "$config_toml"
+        sed -i'.bak' "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" >"$config_toml"
     fi
 }
 
@@ -401,7 +374,7 @@ function setup() {
     echo "Setting up a new $NODE_TYPE node..."
     ensure_supra_home_is_absolute_path
     set_ulimit
-    
+
     if is_validator; then
         start_validator_docker_container
         download_validator_static_configuration_files
@@ -425,8 +398,6 @@ function remove_old_docker_image() {
     local old_image="$1"
     docker rmi "$old_image" &>/dev/null
 }
-
-
 
 function update_config_toml() {
     local config_toml="$HOST_SUPRA_HOME"/config.toml
@@ -511,7 +482,7 @@ function copy_validator_root_config_files() {
     docker cp "$HOST_SUPRA_HOME"/genesis.blob "$CONTAINER_NAME:/supra/"
 }
 
-function start_rpc_node(){
+function start_rpc_node() {
     copy_rpc_root_config_files
     start_rpc_docker_container
     docker exec -itd $CONTAINER_NAME /supra/rpc_node start
@@ -524,7 +495,7 @@ function start_validator_node() {
 
     ESCAPED_PASSWORD=$(printf '%q' "$CLI_PASSWORD")
 
-    expect << EOF
+    expect <<EOF
         spawn docker exec -it $CONTAINER_NAME /supra/supra node smr run
         expect "password:" { send "$ESCAPED_PASSWORD\r" }
         expect eof
@@ -548,7 +519,7 @@ function sync() {
     # Ensure AWS CLI configuration is set up properly
     mkdir -p ~/.aws
     if [ ! -f ~/.aws/config ]; then
-        cat <<EOF > ~/.aws/config
+        cat <<EOF >~/.aws/config
 [default]
 region = auto
 output = json
@@ -567,6 +538,7 @@ EOF
     elif [ "$NETWORK" == "testnet" ]; then
         export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
         export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
+
         if is_validator; then
             BUCKET_NAME="testnet-validator-snapshot"
         elif is_rpc; then
@@ -580,11 +552,11 @@ EOF
     if is_validator; then
         # Create the local directory if it doesn't exist
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
-        
+
         # Download store snapshots concurrently
         aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/smr_storage/" \
-                --endpoint-url "$ENDPOINT_URL" \
-                --exact-timestamps
+            --endpoint-url "$ENDPOINT_URL" \
+            --delete
     elif is_rpc; then
         # Create the local directories if they don't exist
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
@@ -592,11 +564,11 @@ EOF
 
         # Run the two download commands concurrently in the background
         aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/rpc_store/" \
-                --endpoint-url "$ENDPOINT_URL" \
-                --exact-timestamps &
+            --endpoint-url "$ENDPOINT_URL" \
+            --delete &
         aws s3 sync "s3://${BUCKET_NAME}/snapshots/archive/" "$HOST_SUPRA_HOME/rpc_archive/" \
-                --endpoint-url "$ENDPOINT_URL" \
-                --exact-timestamps &
+            --endpoint-url "$ENDPOINT_URL" \
+            --delete &
         wait
     fi
 }
@@ -610,16 +582,8 @@ function main() {
     DOCKER_IMAGE="asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/${NODE_TYPE}-node:${NEW_IMAGE_VERSION}"
 
     if [[ "$NETWORK" == "mainnet" ]]; then
-        RCLONE_CONFIG="$MAINNET_RCLONE_CONFIG"
-        RCLONE_CONFIG_HEADER="$MAINNET_RCLONE_CONFIG_NAME"
-        RPC_CONFIG_TOML="$MAINNET_RPC_CONFIG_TOML"
-        SNAPSHOT_ROOT="mainnet"
         STATIC_SOURCE="mainnet-data"
     else
-        RCLONE_CONFIG="$TESTNET_RCLONE_CONFIG"
-        RCLONE_CONFIG_HEADER="$TESTNET_RCLONE_CONFIG_NAME"
-        RPC_CONFIG_TOML="$TESTNET_RPC_CONFIG_TOML"
-        SNAPSHOT_ROOT="testnet-snapshot"
         STATIC_SOURCE="testnet-snapshot"
     fi
 
