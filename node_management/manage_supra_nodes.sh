@@ -150,7 +150,7 @@ function start_usage() {
 }
 
 function sync_usage() {
-    echo "Usage: ./$SCRIPT_NAME.sh sync <node_type> <host_supra_home> <network> [exact_timestamps]" >&2
+    echo "Usage: ./$SCRIPT_NAME.sh sync <node_type> <host_supra_home> <network>" >&2
     echo "Parameters:" >&2
     node_type_usage
     host_supra_home_usage
