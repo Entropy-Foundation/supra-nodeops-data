@@ -43,6 +43,7 @@ function parse_args() {
         sync)
             HOST_SUPRA_HOME="$3"
             NETWORK="$4"
+            EXACT_TIMESTAMPS="$5"
             ;;
     esac
 
@@ -121,10 +122,17 @@ function start_usage() {
 }
 
 function sync_usage() {
-    echo "Usage: ./$SCRIPT_NAME.sh sync <node_type> <host_supra_home> <network>" >&2
+    echo "Usage: ./$SCRIPT_NAME.sh sync <node_type> <host_supra_home> <network> [exact_timestamps]" >&2
     node_type_usage
     host_supra_home_usage
     network_usage
+    echo "  - exact_timestamps: [Optional] Any value. If set, will sync all files in the database" >&2
+    echo "    with last-modified timestamps that differ from the timestamp of the corresponding file" >&2
+    echo "    in the remote snapshot. Set this parameter if you receive an error that indicates that" >&2
+    echo "    your node's database might be corrupted. This will be more efficient than removing and" >&2
+    echo "    re-syncing the full snapshot. Afterwards, run the command again without this parameter" >&2
+    echo "    to confirm that all data has been downloaded. Note that the script will re-download the" >&2
+    echo "    same files if you repeat the command with this parameter set, so do not do this." >&2
     exit 1
 }
 
@@ -530,45 +538,54 @@ s3 =
 EOF
     fi
 
+    local bucket_name="mainnet"
+    # Define the custom endpoint for Cloudflare R2
+    local endpoint_url="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
+    local aws_options="--endpoint-url '$endpoint_url' --delete"
+
+    if [ -n "$EXACT_TIMESTAMPS" ]; then
+        aws_options+=" --exact-timestamps"
+    fi
+
     # Set AWS CLI credentials and bucket name based on the selected network
     if [ "$NETWORK" == "mainnet" ]; then
         export AWS_ACCESS_KEY_ID="c64bed98a85ccd3197169bf7363ce94f"
         export AWS_SECRET_ACCESS_KEY="0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7"
-        BUCKET_NAME="mainnet"
     elif [ "$NETWORK" == "testnet" ]; then
         export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
         export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
 
         if is_validator; then
-            BUCKET_NAME="testnet-validator-snapshot"
+            bucket_name="testnet-validator-snapshot"
         elif is_rpc; then
-            BUCKET_NAME="testnet-snapshot"
+            bucket_name="testnet-snapshot"
         fi
     fi
 
-    # Define the custom endpoint for Cloudflare R2
-    local ENDPOINT_URL="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
 
     if is_validator; then
         # Create the local directory if it doesn't exist
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
 
+        # Remove the CURRENT index file. `aws sync` sometimes fails to update this properly.
+        # This ensures that the correct version of the file will be downloaded from the snapshot.
+        rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
+
         # Download store snapshots concurrently
-        aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/smr_storage/" \
-            --endpoint-url "$ENDPOINT_URL" \
-            --delete
+        aws s3 sync "s3://${bucket_name}/snapshots/store/" "$HOST_SUPRA_HOME/smr_storage/" $aws_options
     elif is_rpc; then
         # Create the local directories if they don't exist
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
 
+        # Remove the CURRENT index files. `aws sync` sometimes fails to update this properly.
+        # This ensures that the correct version of the file will be downloaded from the snapshot.
+        rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
+        rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
+
         # Run the two download commands concurrently in the background
-        aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/rpc_store/" \
-            --endpoint-url "$ENDPOINT_URL" \
-            --delete &
-        aws s3 sync "s3://${BUCKET_NAME}/snapshots/archive/" "$HOST_SUPRA_HOME/rpc_archive/" \
-            --endpoint-url "$ENDPOINT_URL" \
-            --delete &
+        aws s3 sync "s3://${bucket_name}/snapshots/store/" "$HOST_SUPRA_HOME/rpc_store/" $aws_options &
+        aws s3 sync "s3://${bucket_name}/snapshots/archive/" "$HOST_SUPRA_HOME/rpc_archive/" $aws_options &
         wait
     fi
 }
