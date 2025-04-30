@@ -25,32 +25,6 @@ function is_update() {
     [[ "$FUNCTION" = "update" ]]
 }
 
-function parse_sync_optional_args() {
-    while :; do
-        case $1 in
-        -e | --exact-timestamps)
-            EXACT_TIMESTAMPS="SET"
-            ;;
-        -s | --snapshot-source)
-            # TODO: Could add verification for this parameter to ensure that operators
-            # don't accidentally sync the snapshot for the wrong environment.
-            SNAPSHOT_SOURCE="$2"
-            # Shift out the args parameter.
-            shift || break
-            ;;
-        *)
-            break
-        ;;
-        esac
-
-        # Move to the next arg.
-        shift || break
-    done
-
-    # Return the remaining args.
-    echo "$@"
-}
-
 function parse_args() {
     FUNCTION="$1"
     NODE_TYPE="$2"
@@ -67,11 +41,35 @@ function parse_args() {
         HOST_SUPRA_HOME="$4"
         ;;
     sync)
-        local remaining_args=($(parse_sync_optional_args "${@:2}"))
-        NODE_TYPE="${remaining_args[0]}"
-        HOST_SUPRA_HOME="${remaining_args[2]}"
-        NETWORK="${remaining_args[2]}"
-        echo "$FUNCTION $NODE_TYPE $SNAPSHOT_SOURCE $HOST_SUPRA_HOME $NETWORK"
+        # Shift out `<function>`.
+        shift
+
+        # Parse the optional args.
+        while :; do
+            case $1 in
+            -e | --exact-timestamps)
+                EXACT_TIMESTAMPS="SET"
+                ;;
+            -s | --snapshot-source)
+                # TODO: Could add verification for this parameter to ensure that operators
+                # don't accidentally sync the snapshot for the wrong environment.
+                SNAPSHOT_SOURCE="$2"
+                # Shift out the args parameter.
+                shift || break
+                ;;
+            *)
+                break
+                ;;
+            esac
+
+            # Move to the next arg.
+            shift || break
+        done
+
+        # Parse the remaining expected args.
+        NODE_TYPE="$1"
+        HOST_SUPRA_HOME="$2"
+        NETWORK="$3"
         ;;
     esac
 
