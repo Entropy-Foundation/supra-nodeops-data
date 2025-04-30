@@ -575,7 +575,7 @@ EOF
     local bucket_name="mainnet"
     # Define the custom endpoint for Cloudflare R2
     local endpoint_url="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
-    local aws_options="--endpoint-url '$endpoint_url' --delete"
+    local aws_options="--endpoint-url $endpoint_url --delete"
 
     if [ -n "$EXACT_TIMESTAMPS" ]; then
         aws_options+=" --exact-timestamps"
