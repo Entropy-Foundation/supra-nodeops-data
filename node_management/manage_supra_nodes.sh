@@ -36,18 +36,25 @@ function parse_sync_optional_args() {
             # don't accidentally sync the snapshot for the wrong environment.
             SNAPSHOT_SOURCE="$2"
             # Shift out the args parameter.
-            shift
+            shift || break
             ;;
-        *) break ;;
+        *)
+            break
+        ;;
         esac
+
         # Move to the next arg.
-        shift
+        shift || break
     done
+
+    # Return the remaining args.
+    echo "$@"
 }
 
 function parse_args() {
     FUNCTION="$1"
     NODE_TYPE="$2"
+    OTHER_ARGS=("${@:2}")
 
     case "$FUNCTION" in
     setup | update)
@@ -61,12 +68,9 @@ function parse_args() {
         HOST_SUPRA_HOME="$4"
         ;;
     sync)
-        # Shift out the already-processed args.
-        shift 2
-        parse_sync_optional_args "$@"
-        # The above function shifts out all optional args, so we're back to $1.
-        HOST_SUPRA_HOME="$1"
-        NETWORK="$2"
+        local remaining_args=($(parse_sync_optional_args "${OTHER_ARGS[@]}"))
+        HOST_SUPRA_HOME="${remaining_args[0]}"
+        NETWORK="${remaining_args[1]}"
         ;;
     esac
 
@@ -138,6 +142,7 @@ function update_usage() {
 
 function start_usage() {
     echo "Usage: ./$SCRIPT_NAME.sh start <node_type> <container_name> <host_supra_home>" >&2
+    echo "Parameters:" >&2
     node_type_usage
     container_name_usage
     host_supra_home_usage
@@ -146,6 +151,7 @@ function start_usage() {
 
 function sync_usage() {
     echo "Usage: ./$SCRIPT_NAME.sh sync <node_type> <host_supra_home> <network> [exact_timestamps]" >&2
+    echo "Parameters:" >&2
     node_type_usage
     host_supra_home_usage
     network_usage
