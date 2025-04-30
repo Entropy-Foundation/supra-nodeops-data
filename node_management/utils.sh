@@ -81,7 +81,6 @@ function prompt_for_cli_password() {
 
 # Helper function to install AWS CLI v2 if not already installed
 function install_aws_cli() {
-    
     export AWS_MAX_CONCURRENT_REQUESTS=350  # Adjust based on system resources
     export AWS_MAX_QUEUE_SIZE=10000  # Increase queue size for large downloads
 

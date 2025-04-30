@@ -54,7 +54,6 @@ function parse_sync_optional_args() {
 function parse_args() {
     FUNCTION="$1"
     NODE_TYPE="$2"
-    OTHER_ARGS=("${@:2}")
 
     case "$FUNCTION" in
     setup | update)
@@ -68,9 +67,11 @@ function parse_args() {
         HOST_SUPRA_HOME="$4"
         ;;
     sync)
-        local remaining_args=($(parse_sync_optional_args "${OTHER_ARGS[@]}"))
-        HOST_SUPRA_HOME="${remaining_args[0]}"
-        NETWORK="${remaining_args[1]}"
+        local remaining_args=($(parse_sync_optional_args "${@:2}"))
+        NODE_TYPE="${remaining_args[0]}"
+        HOST_SUPRA_HOME="${remaining_args[2]}"
+        NETWORK="${remaining_args[2]}"
+        echo "$FUNCTION $NODE_TYPE $SNAPSHOT_SOURCE $HOST_SUPRA_HOME $NETWORK"
         ;;
     esac
 
@@ -257,7 +258,7 @@ function start_rpc_docker_container() {
 # Creates a timestamped backup if the file exists and gets replaced.
 # Usage:
 #   backup_and_download_if_outdated <file_path> <download_url> <new_version> [<label>]
-backup_and_download_if_outdated() {
+function backup_and_download_if_outdated() {
     local file_path="$1"
     local download_url="$2"
     local new_version_full="$3"
