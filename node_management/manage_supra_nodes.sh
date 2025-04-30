@@ -25,26 +25,49 @@ function is_update() {
     [[ "$FUNCTION" = "update" ]]
 }
 
+function parse_sync_optional_args() {
+    while :; do
+        case $1 in
+        -e | --exact-timestamps)
+            EXACT_TIMESTAMPS="SET"
+            ;;
+        -s | --snapshot-source)
+            # TODO: Could add verification for this parameter to ensure that operators
+            # don't accidentally sync the snapshot for the wrong environment.
+            SNAPSHOT_SOURCE="$2"
+            # Shift out the args parameter.
+            shift
+            ;;
+        *) break ;;
+        esac
+        # Move to the next arg.
+        shift
+    done
+}
+
 function parse_args() {
     FUNCTION="$1"
     NODE_TYPE="$2"
 
     case "$FUNCTION" in
-        setup | update)
-            NEW_IMAGE_VERSION="$3"
-            CONTAINER_NAME="$4"
-            HOST_SUPRA_HOME="$5"
-            NETWORK="$6"
-            ;;
-        start)
-            CONTAINER_NAME="$3"
-            HOST_SUPRA_HOME="$4"
-            ;;
-        sync)
-            HOST_SUPRA_HOME="$3"
-            NETWORK="$4"
-            EXACT_TIMESTAMPS="$5"
-            ;;
+    setup | update)
+        NEW_IMAGE_VERSION="$3"
+        CONTAINER_NAME="$4"
+        HOST_SUPRA_HOME="$5"
+        NETWORK="$6"
+        ;;
+    start)
+        CONTAINER_NAME="$3"
+        HOST_SUPRA_HOME="$4"
+        ;;
+    sync)
+        # Shift out the already-processed args.
+        shift 2
+        parse_sync_optional_args "$@"
+        # The above function shifts out all optional args, so we're back to $1.
+        HOST_SUPRA_HOME="$1"
+        NETWORK="$2"
+        ;;
     esac
 
     if (is_setup || is_update) && is_rpc; then
@@ -126,13 +149,17 @@ function sync_usage() {
     node_type_usage
     host_supra_home_usage
     network_usage
-    echo "  - exact_timestamps: [Optional] Any value. If set, will sync all files in the database" >&2
-    echo "    with last-modified timestamps that differ from the timestamp of the corresponding file" >&2
-    echo "    in the remote snapshot. Set this parameter if you receive an error that indicates that" >&2
-    echo "    your node's database might be corrupted. This will be more efficient than removing and" >&2
-    echo "    re-syncing the full snapshot. Afterwards, run the command again without this parameter" >&2
-    echo "    to confirm that all data has been downloaded. Note that the script will re-download the" >&2
-    echo "    same files if you repeat the command with this parameter set, so do not do this." >&2
+    echo "Optional Parameters:" >&2
+    echo "  -e, --exact-timestamps" >&2
+    echo "     Sync all files in the database with last-modified timestamps that differ from the" >&2
+    echo "     timestamp of the corresponding file in the remote snapshot. Set this parameter if" >&2
+    echo "     you receive an error that indicates that your node's database might be corrupted." >&2
+    echo "     This will be more efficient than removing and re-syncing the full snapshot. Afterwards," >&2
+    echo "     run the command again without this parameter to confirm that all data has been" >&2
+    echo "     downloaded. Note that the script will re-download the same files if you repeat the" >&2
+    echo "     command with this parameter set, so do not do this." >&2
+    echo " -s, --snapshot-source <snapshot_source_name>" >&2
+    echo "     The name of the remote source to sync snapshots from."
     exit 1
 }
 
@@ -562,6 +589,10 @@ EOF
         fi
     fi
 
+    if [ -n "$SNAPSHOT_SOURCE" ]; then
+        # The user overrode the default snapshot source via the optional parameter.
+        bucket_name="$SNAPSHOT_SOURCE"
+    fi
 
     if is_validator; then
         # Create the local directory if it doesn't exist
