@@ -14,7 +14,7 @@ function log() {
 
 function check_active_uploader() {
     CURRENT_UPLOADER_IP="$(rclone cat "$RCLONE_REMOTE/$UPLOADER_IP_FILE")"
-    LOCAL_IP="$(curl https://ipinfo.io/ip)"
+    LOCAL_IP="$(curl https://ipinfo.io/ip 2>/dev/null)"
 
     if [ -n "$CURRENT_UPLOADER_IP" ] && [[ "$LOCAL_IP" != "$CURRENT_UPLOADER_IP" ]]; then
         echo "Error: $CURRENT_UPLOADER_IP is already registered as the uploader for $RCLONE_REMOTE." >&2
