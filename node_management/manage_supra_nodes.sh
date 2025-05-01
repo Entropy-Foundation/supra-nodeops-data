@@ -650,7 +650,7 @@ EOF
         while aws s3 ls "$lock_file" --endpoint-url "$endpoint_url"
         do
             sleep 10
-        fi
+        done
 
         # Sync the updated state, this time without the `--exact-timestamps` if it was set,
         # since we only want to sync the new diff. This might fail in certain edge cases,
