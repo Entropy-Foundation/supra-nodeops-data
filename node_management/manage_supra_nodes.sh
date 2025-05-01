@@ -291,7 +291,7 @@ function download_rpc_static_configuration_files() {
     local client_supra_certificate="$HOST_SUPRA_HOME/client_supra_certificate.pem"
     local client_supra_key="$HOST_SUPRA_HOME/client_supra_key.pem"
     local supra_committees="$HOST_SUPRA_HOME/supra_committees.json"
-    local config_toml = "$HOST_SUPRA_HOME/config.toml"
+    local config_toml="$HOST_SUPRA_HOME/config.toml"
     local genesis_blob="$HOST_SUPRA_HOME/genesis.blob"
 
     # Download the TLS certificates and keys.
