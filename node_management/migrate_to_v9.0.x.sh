@@ -76,9 +76,17 @@ function migrate_rpc() {
         mv "$config_toml" "$v8_config_toml"
     fi
 
+    # Update the `config.toml` configuration file.
     wget -O "$config_toml" https://testnet-snapshot.supra.com/configs/config_v9.0.7.toml
     sed -i'.bak' "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" "$config_toml"
+
+    # Stop the Docker container.
     docker stop "$CONTAINER_NAME" || :
+
+    # Remove any existing snapshots. If we don't do this then they will start to take
+    # up a large amount of disk space during the sync.
+    rm -rf "$HOST_SUPRA_HOME/snapshot"
+
     ./manage_supra_nodes.sh \
         sync \
         --exact-timestamps \
