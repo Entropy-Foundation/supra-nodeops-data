@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 SCRIPT_NAME="migrate_to_v9.0.x"
 
 # This script is expected to be installed with `install_management_scripts.sh`, which
@@ -9,7 +9,7 @@ source "$SCRIPT_DIR/.supra/node_management/utils.sh"
 
 function parse_args() {
     NODE_TYPE="$1"
-    CONTAINER_NAME="$2"    
+    CONTAINER_NAME="$2"
     HOST_SUPRA_HOME="$3"
 
     if [ "$NODE_TYPE" = "rpc" ]; then
@@ -75,7 +75,13 @@ function migrate_rpc() {
     wget -O "$config_toml" https://testnet-snapshot.supra.com/configs/config_v9.0.7.toml
     sed -i'.bak' "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" "$config_toml"
     docker stop "$CONTAINER_NAME" || :
-    ./manage_supra_nodes.sh sync --snapshot-source testnet-archive-snapshot rpc "$HOST_SUPRA_HOME" testnet
+    ./manage_supra_nodes.sh \
+        sync \
+        --exact-timestamps \
+        --snapshot-source testnet-archive-snapshot \
+        rpc \
+        "$HOST_SUPRA_HOME" \
+        testnet
     echo "Migration complete. Please transfer all custom settings from $v8_config_toml to "
     echo -n "$config_toml before starting your node."
 }
