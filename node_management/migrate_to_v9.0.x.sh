@@ -71,7 +71,11 @@ function migrate_rpc() {
     local config_toml="$HOST_SUPRA_HOME/config.toml"
 
     echo "Migrating RPC $CONTAINER_NAME at $HOST_SUPRA_HOME to v9.0.x..."
-    mv "$config_toml" "$v8_config_toml"
+
+    if ! [ -f "$v8_config_toml" ]; then
+        mv "$config_toml" "$v8_config_toml"
+    fi
+
     wget -O "$config_toml" https://testnet-snapshot.supra.com/configs/config_v9.0.7.toml
     sed -i'.bak' "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" "$config_toml"
     docker stop "$CONTAINER_NAME" || :
