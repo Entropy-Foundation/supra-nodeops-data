@@ -552,6 +552,43 @@ function start() {
 
 #---------------------------------------------------------- Sync ----------------------------------------------------------
 
+function sync_once() {
+    local endpoint_url="$1"
+    local remote_root="$2"
+
+    local sync_options="--endpoint-url $endpoint_url --delete"
+
+    if [ -n "$EXACT_TIMESTAMPS" ]; then
+        sync_options+=" --exact-timestamps"
+    fi
+
+    if is_validator; then
+        # Create the local directory if it doesn't exist
+        mkdir -p "$HOST_SUPRA_HOME/smr_storage"
+
+        # Remove the CURRENT index file. `aws sync` sometimes fails to update this properly.
+        # This ensures that the correct version of the file will be downloaded from the snapshot.
+        rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
+
+        # Download store snapshots concurrently
+        aws s3 sync "$remote_root/store/" "$HOST_SUPRA_HOME/smr_storage/" $sync_options
+    elif is_rpc; then
+        # Create the local directories if they don't exist
+        mkdir -p "$HOST_SUPRA_HOME/rpc_store"
+        mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
+
+        # Remove the CURRENT index files. `aws sync` sometimes fails to update this properly.
+        # This ensures that the correct version of the file will be downloaded from the snapshot.
+        rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
+        rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
+
+        # Run the two download commands concurrently in the background
+        aws s3 sync "$remote_root/store/" "$HOST_SUPRA_HOME/rpc_store/" $sync_options &
+        aws s3 sync "$remote_root/archive/" "$HOST_SUPRA_HOME/rpc_archive/" $sync_options &
+        wait
+    fi
+}
+
 function sync() {
     # Install AWS CLI if not installed
     install_aws_cli
@@ -573,11 +610,6 @@ EOF
     local bucket_name="mainnet"
     # Define the custom endpoint for Cloudflare R2
     local endpoint_url="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
-    local aws_options="--endpoint-url $endpoint_url --delete"
-
-    if [ -n "$EXACT_TIMESTAMPS" ]; then
-        aws_options+=" --exact-timestamps"
-    fi
 
     # Set AWS CLI credentials and bucket name based on the selected network
     if [ "$NETWORK" == "mainnet" ]; then
@@ -599,30 +631,34 @@ EOF
         bucket_name="$SNAPSHOT_SOURCE"
     fi
 
-    if is_validator; then
-        # Create the local directory if it doesn't exist
-        mkdir -p "$HOST_SUPRA_HOME/smr_storage"
+    local remote_root="s3://${bucket_name}/snapshots"
+    # The file that will be present in the `snapshots` directory of the bucket if the
+    # snapshot uploader is currently uploading an update.
+    local lock_file="$remote_root/UPLOAD_IN_PROGRESS"
 
-        # Remove the CURRENT index file. `aws sync` sometimes fails to update this properly.
-        # This ensures that the correct version of the file will be downloaded from the snapshot.
-        rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
+    # Sync the current state of the bucket.
+    sync_once "$endpoint_url" "$remote_root"
 
-        # Download store snapshots concurrently
-        aws s3 sync "s3://${bucket_name}/snapshots/store/" "$HOST_SUPRA_HOME/smr_storage/" $aws_options
-    elif is_rpc; then
-        # Create the local directories if they don't exist
-        mkdir -p "$HOST_SUPRA_HOME/rpc_store"
-        mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
+    # Check if an upload is in progress. If it is, then the sync that we just completed
+    # will have terminated in an inconsistent state. Wait for the upload to finish, then
+    # sync one more time.
+    if aws s3 ls "$lock_file" --endpoint-url "$endpoint_url"; then
+        echo "A new snapshot is currently being uploaded to the bucket. "
+        echo -n "Waiting for the upload to complete. This may take 10-15 minutes..."
 
-        # Remove the CURRENT index files. `aws sync` sometimes fails to update this properly.
-        # This ensures that the correct version of the file will be downloaded from the snapshot.
-        rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
-        rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
+        # Wait for the upload to complete.
+        while aws s3 ls "$lock_file" --endpoint-url "$endpoint_url"
+        do
+            sleep 10
+        fi
 
-        # Run the two download commands concurrently in the background
-        aws s3 sync "s3://${bucket_name}/snapshots/store/" "$HOST_SUPRA_HOME/rpc_store/" $aws_options &
-        aws s3 sync "s3://${bucket_name}/snapshots/archive/" "$HOST_SUPRA_HOME/rpc_archive/" $aws_options &
-        wait
+        # Sync the updated state, this time without the `--exact-timestamps` if it was set,
+        # since we only want to sync the new diff. This might fail in certain edge cases,
+        # in which case the operator should manually run the command again with the `--exact-timestamps`
+        # flag present, but should be more efficient most of the time.
+        echo "Downloading the new diff..."
+        unset "$EXACT_TIMESTAMPS"
+        sync_once "$endpoint_url" "$remote_root"
     fi
 }
 
