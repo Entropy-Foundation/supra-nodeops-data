@@ -108,7 +108,7 @@ function rpc_common_parameters() {
     container_name_usage
     host_supra_home_usage
     network_usage
-    echo "  - validator_ip: The IP address of the validator to sync consensus data from. Must be a valid IPv4 address: i.e. '[0-9]+.[0-9]+.[0-9]+.[0-9]+'" >&2
+    validator_ip_usage
 }
 
 function setup_usage() {
@@ -406,7 +406,7 @@ function update_validator_in_config_toml() {
     local config_toml="$HOST_SUPRA_HOME/config.toml"
 
     if ! [ -f "$config_toml" ]; then
-        sed -i'.bak' "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" >"$config_toml"
+        sed -i'.bak' "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" "$config_toml"
     fi
 }
 

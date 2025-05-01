@@ -22,6 +22,10 @@ function network_usage() {
     echo "  - network: The network to sync with. Either 'testnet' or 'mainnet'." >&2
 }
 
+function validator_ip_usage() {
+    echo "  - validator_ip: The IP address of the validator to sync consensus data from. Must be a valid IPv4 address: i.e. '[0-9]+.[0-9]+.[0-9]+.[0-9]+'" >&2
+}
+
 function is_ipv4_address() {
     local ip="$1"
     [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
