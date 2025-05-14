@@ -13,4 +13,5 @@ wget -O .supra/node_management/utils.sh https://raw.githubusercontent.com/Entrop
 wget -O manage_supra_nodes.sh https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/manage_supra_nodes.sh
 wget -O migrate_to_v8.0.2.sh https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/migrate_to_v8.0.2.sh
 wget -O migrate_to_v9.0.x.sh https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/migrate_to_v9.0.x.sh
+wget -O check_proposals.py https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/node_management/check_proposals.py
 chmod +x manage_supra_nodes.sh migrate_to_v8.0.2.sh migrate_to_v9.0.x.sh
