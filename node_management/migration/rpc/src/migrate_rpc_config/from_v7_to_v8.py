@@ -3,6 +3,7 @@ v7 to v8 migration functions for Supra's RPC configuration.
 """
 
 import tomlkit
+from . import utils
 
 
 def __migrate_sync_ws_parameters(toml_data):
@@ -27,7 +28,9 @@ def __migrate_sync_ws_parameters(toml_data):
                 print(
                     f"Warning: `{key}` does not exist or its value is empty. Your config must be invalid and you should check it manually after migration"
                 )
-            print(f"Moving `{key}` from root level to [synchronization.ws]")
+            utils.print_with_checkmark(
+                f"Moving `{key}` from root level to [synchronization.ws]"
+            )
             sync_ws_keys[key] = value
         else:
             print(f"Warning: `{key}` not found in root level")
@@ -58,7 +61,9 @@ def __migrate_chain_state_assembler_parameters(toml_data):
                 print(
                     f"Warning: `{key}` does not exist or its value is empty. Your config must be invalid and you should check it manually after migration"
                 )
-            print(f"Moving `{key}` from root level to [chain_state_assembler]")
+            utils.print_with_checkmark(
+                f"Moving `{key}` from root level to [chain_state_assembler]"
+            )
             if value != 1:
                 print(
                     f"Warning: `{key} = {value}`, will be set to `1` as recommended by Supra."
@@ -74,7 +79,7 @@ def __migrate_chain_state_assembler_parameters(toml_data):
         chain_assembler_table[key] = value
     new_parameters = {"certified_block_cache_bucket_size": 50}
     for key, value in new_parameters.items():
-        print(f"Adding `{key} = {value}` to [chain_state_assembler]")
+        utils.print_with_checkmark(f"Adding `{key} = {value}` to [chain_state_assembler]")
         chain_assembler_table[key] = value
     toml_data["chain_state_assembler"] = chain_assembler_table
 
@@ -82,12 +87,16 @@ def __migrate_chain_state_assembler_parameters(toml_data):
 def __add_consensus_access_tokens(toml_data):
     new_parameters = {"consensus_access_tokens": []}
     for key, value in new_parameters.items():
-        print(f"Adding `{key} = {value}` to root level")
+        utils.print_with_checkmark(f"Adding `{key} = {value}` to root level")
         toml_data[key] = value
 
 
 def __update_block_provider_is_trusted(toml_data):
-    toml_data["block_provider_is_trusted"] = True
+    value = True
+    utils.print_with_checkmark(
+        f"Adding `block_provider_is_trusted = {value}` to root level"
+    )
+    toml_data["block_provider_is_trusted"] = value
 
 
 def migrate_v7_to_v8(toml_data):

@@ -3,6 +3,7 @@ v8 to v9 migration functions for Supra RPC config file.
 """
 
 import tomlkit
+from . import utils
 
 
 def __migrate_sync_ws_certificates(toml_data):
@@ -32,7 +33,7 @@ def __migrate_sync_ws_certificates(toml_data):
                 print(
                     f"Warning: `{key}` does not exist or its value is empty. Your config must be invalid and you should check it manually after migration"
                 )
-            print(
+            utils.print_with_checkmark(
                 f"Moving `{key}` from [synchronization.ws] to  {new_key} in [synchronization.ws.certificates] "
             )
             sync_ws_certificates_v9[new_key] = value

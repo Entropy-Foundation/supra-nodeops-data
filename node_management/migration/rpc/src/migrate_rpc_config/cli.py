@@ -40,7 +40,6 @@ def migrate_config(migrate_path: str, from_path: str, to_path: str):
     # Backup old config
     original_toml_data = deepcopy(toml_data)
 
-
     for fn in migrate_functions:
         print(f"Running migration function: {fn.__name__}")
         fn(toml_data)
