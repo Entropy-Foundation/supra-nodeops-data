@@ -14,7 +14,7 @@ RPC_CONFIG_MIGRATE_PATH = {
 
 
 def migrate_config(migrate_path: str, from_path: str, to_path: str):
-    # Migrate config
+    # Get the migration functions for the given path
     migrate_functions = RPC_CONFIG_MIGRATE_PATH.pop(migrate_path)
     if not migrate_functions:
         raise SystemExit(f"Error: unsupported migration path {migrate_path}.")
