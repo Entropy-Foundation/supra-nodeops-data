@@ -5,3 +5,9 @@
 
 # egg-info
 **/*.egg-info/
+
+# python cache 
+**/__pycache__/
+
+# pytest
+**/.hypothesis/

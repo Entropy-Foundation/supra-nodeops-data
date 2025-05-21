@@ -86,8 +86,13 @@ def __add_consensus_access_tokens(toml_data):
         toml_data[key] = value
 
 
+def __update_block_provider_is_trusted(toml_data):
+    toml_data["block_provider_is_trusted"] = True
+
+
 def migrate_v7_to_v8(toml_data):
     # Migrate the config
     __migrate_sync_ws_parameters(toml_data)
     __migrate_chain_state_assembler_parameters(toml_data)
     __add_consensus_access_tokens(toml_data)
+    __update_block_provider_is_trusted(toml_data)
