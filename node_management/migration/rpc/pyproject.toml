@@ -1,0 +1,15 @@
+[project]
+name = "supra-rpc-migrator"
+version = "0.1.0"
+description = "A CLI tool to migrate Supra RPC config from v7 to v8."
+authors = [
+    { name = "Kaiqi Chen" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "tomlkit>=0.11.0"
+]
+
+[project.scripts]
+migrate-rpc-config-v7-to-v8 = "migrate_rpc_config_v7_to_v8:main"

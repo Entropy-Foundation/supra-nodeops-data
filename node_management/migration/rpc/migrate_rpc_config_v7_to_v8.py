@@ -1,18 +1,21 @@
 from copy import deepcopy
 
 import tomlkit
+import difflib
+
 
 def print_colored_diff(diff):
     # The color is added here manually using ANSI escape codes.
     for line in diff:
-        if line.startswith('+') and not line.startswith('+++'):
-            print(f"\033[32m{line}\033[0m", end='')  # Green for additions
-        elif line.startswith('-') and not line.startswith('---'):
-            print(f"\033[31m{line}\033[0m", end='')  # Red for deletions
-        elif line.startswith('@@'):
-            print(f"\033[36m{line}\033[0m", end='')  # Cyan for hunk headers
+        if line.startswith("+") and not line.startswith("+++"):
+            print(f"\033[32m{line}\033[0m", end="")  # Green for additions
+        elif line.startswith("-") and not line.startswith("---"):
+            print(f"\033[31m{line}\033[0m", end="")  # Red for deletions
+        elif line.startswith("@@"):
+            print(f"\033[36m{line}\033[0m", end="")  # Cyan for hunk headers
         else:
-            print(line, end='')
+            print(line, end="")
+
 
 def migrate_sync_ws_parameters(toml_data):
     # v7 config should not have a [synchronization] table
@@ -74,7 +77,7 @@ def migrate_chain_state_assembler_parameters(toml_data):
                 print(f"Moving `{key}` from root level to [chain_state_assembler]")
                 if value != 1:
                     print(
-                        f"Warning: `{key}` value is {value}, will be set to `1` as recommended by Supra."
+                        f"Warning: `{key} = {value}`, will be set to `1` as recommended by Supra."
                     )
                     value = 1
                 chain_assembler_keys[key] = value
@@ -100,45 +103,76 @@ def add_new_root_parameters(toml_data):
 
 
 def migrate_config(old_path: str, new_path: str):
+    default_backup_path = old_path + ".bak"
+    if old_path == new_path:
+        print(f"Warning: The source and destination paths are the same ({old_path}).")
+        print(f"A backup of your original config will be saved to: {default_backup_path}")
+        confirm = input(
+            "This will overwrite your original config file. Continue? [y/N]: "
+        )
+        if confirm.lower() != "y":
+            print("Aborted by user.")
+            return
+
     with open(old_path, "r") as f:
         toml_data = tomlkit.parse(f.read())
 
     # Backup old config
     toml_data_v7 = deepcopy(toml_data)
 
-    # Do migrations
+    print("Starting migration from v7 to v8...")
     migrate_sync_ws_parameters(toml_data)
     migrate_chain_state_assembler_parameters(toml_data)
     add_new_root_parameters(toml_data)
 
+    print(f"Backing up old config to {default_backup_path}")
+    tomlkit.dump(toml_data_v7, open(default_backup_path, "w"))
+
     # Write new config
+    print(f"Writing new config to {new_path}")
     with open(new_path, "w") as f:
         f.write(tomlkit.dumps(toml_data))
-
-    print(
-        f"Config migrated from {args.v7} to {args.v8}.\nPlease check the new config file for any additional changes.\n"
-    )
 
     # Print the diff
     print("Diff between v7 and v8 config:")
     v7_str = tomlkit.dumps(toml_data_v7).splitlines(keepends=True)
     v8_str = tomlkit.dumps(toml_data).splitlines(keepends=True)
-    import difflib
 
     diff = difflib.unified_diff(v7_str, v8_str, fromfile="v7", tofile="v8")
     print_colored_diff(diff)
 
+    print(
+        f"""
+    Config migrated from {old_path} to {new_path}.
+    Please double check above for the diff between v7 and v8 config.
+    Please ensure to use the new config file for v8 binary. 
+    """
+    )
 
-if __name__ == "__main__":
+
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Migrate RPC config from v7 to v8")
     parser.add_argument(
-        "--v7", required=True, type=str, help="Path to the v7 config file"
+        "-f",
+        "--from-file",
+        required=True,
+        type=str,
+        metavar="",
+        help="Path to the v7 config file",
     )
     parser.add_argument(
-        "--v8", required=True, type=str, help="Path to save the v8 config file"
+        "-t",
+        "--to-file",
+        required=True,
+        type=str,
+        metavar="",
+        help="Path to save the v8 config file",
     )
     args = parser.parse_args()
-    assert args.v7 != args.v8, "Error: v7 and v8 config paths must be different"
-    migrate_config(args.v7, args.v8)
+    migrate_config(args.from_file, args.to_file)
+
+
+if __name__ == "__main__":
+    main()
