@@ -1,5 +1,18 @@
+from copy import deepcopy
+
 import tomlkit
 
+def print_colored_diff(diff):
+    # The color is added here manually using ANSI escape codes.
+    for line in diff:
+        if line.startswith('+') and not line.startswith('+++'):
+            print(f"\033[32m{line}\033[0m", end='')  # Green for additions
+        elif line.startswith('-') and not line.startswith('---'):
+            print(f"\033[31m{line}\033[0m", end='')  # Red for deletions
+        elif line.startswith('@@'):
+            print(f"\033[36m{line}\033[0m", end='')  # Cyan for hunk headers
+        else:
+            print(line, end='')
 
 def migrate_sync_ws_parameters(toml_data):
     # v7 config should not have a [synchronization] table
@@ -90,15 +103,30 @@ def migrate_config(old_path: str, new_path: str):
     with open(old_path, "r") as f:
         toml_data = tomlkit.parse(f.read())
 
-    add_new_root_parameters(toml_data)
+    # Backup old config
+    toml_data_v7 = deepcopy(toml_data)
 
+    # Do migrations
     migrate_sync_ws_parameters(toml_data)
-
     migrate_chain_state_assembler_parameters(toml_data)
+    add_new_root_parameters(toml_data)
 
     # Write new config
     with open(new_path, "w") as f:
         f.write(tomlkit.dumps(toml_data))
+
+    print(
+        f"Config migrated from {args.v7} to {args.v8}.\nPlease check the new config file for any additional changes.\n"
+    )
+
+    # Print the diff
+    print("Diff between v7 and v8 config:")
+    v7_str = tomlkit.dumps(toml_data_v7).splitlines(keepends=True)
+    v8_str = tomlkit.dumps(toml_data).splitlines(keepends=True)
+    import difflib
+
+    diff = difflib.unified_diff(v7_str, v8_str, fromfile="v7", tofile="v8")
+    print_colored_diff(diff)
 
 
 if __name__ == "__main__":
@@ -114,4 +142,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
     assert args.v7 != args.v8, "Error: v7 and v8 config paths must be different"
     migrate_config(args.v7, args.v8)
-    print(f"Config migrated from {args.v7} to {args.v8}")

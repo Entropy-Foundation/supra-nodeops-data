@@ -125,6 +125,7 @@ mode = "Server"
 url = "http://localhost:27000"
 description = "LocalNet"
 mode = "Server"
+
 [synchronization.ws]
 consensus_rpc = "ws://<VALIDATOR_IP>:26000"
 consensus_client_cert_path = "./configs/client_supra_certificate.pem"
