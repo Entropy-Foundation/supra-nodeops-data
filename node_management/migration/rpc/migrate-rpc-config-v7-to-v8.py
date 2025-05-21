@@ -8,32 +8,31 @@ def migrate_sync_ws_parameters(toml_data):
             "Error: [synchronization] table should not exist in v7 config."
         )
 
-    # List of keys to move, in the order they should appear
-    keys_to_move = [
-        "consensus_rpc",
-        "consensus_client_cert_path",
-        "consensus_client_private_key_path",
-        "consensus_root_ca_cert_path",
-    ]
-
+    # Explicitly fetch and move these keys from the root
+    # level to the [synchronization.ws] table
+    sync_ws_parameters = {
+        "consensus_rpc": None,
+        "consensus_client_cert_path": None,
+        "consensus_client_private_key_path": None,
+        "consensus_root_ca_cert_path": None,
+    }
+    for key in sync_ws_parameters:
+        if key in toml_data:
+            value = toml_data.pop(key)
+            if value is None:
+                print(
+                    f"Warning: `{key}` does not exist or its value is None, your config must be invalid and you should check it manually after migration"
+                )
+                continue
+            else:
+                print(f"Moving `{key}` from root level to [synchronization.ws]")
+                sync_ws_parameters[key] = value
+        else:
+            print(f"Warning: `{key}` not found in root level")
     # Create [synchronization.ws] table
     sync_table = tomlkit.table()
-    # We'll collect the items to move, preserving order and comments
-    items_to_remove = []
-    for item in toml_data.value.body:
-        if item.key and item.key in keys_to_move:
-            # Move the entire item (with comments)
-            sync_table.add(item.key, item.value)
-            items_to_remove.append(item.key)
-            print(f"Moving `{item.key}` from root level to [synchronization.ws]")
-    # Remove the items from the root (after iteration to avoid mutation during loop)
-    for key in items_to_remove:
-        del toml_data[key]
-    # Warn for missing keys
-    for key in keys_to_move:
-        if key not in sync_table:
-            print(f"Warning: `{key}` not found in root level")
-            sync_table.add(key, None)
+    for key, value in sync_ws_parameters.items():
+        sync_table[key] = value
     toml_data["synchronization"] = tomlkit.table()
     toml_data["synchronization"]["ws"] = sync_table
 
