@@ -1,6 +1,13 @@
 
 ### Usage Example
 
+alias rpc-v8=~/Documents/share/repo/smr-moonshot-testnet/target/devopt/rpc_node
+alias rpc-v9=~/Documents/share/repo/smr-moonshot/target/release/rpc_node
+
+alias supra-v8="~/Documents/share/repo/smr-moonshot-testnet/target/devopt/supra"
+alias supra-v9="~/Documents/share/repo/smr-moonshot/target/release/supra"
+
+
 ```sh
 pip install .
 
@@ -13,8 +20,9 @@ rpc-v9 migrate-db config.toml
 
 # Migrate cli profile from v7 to v8
 supra-v8 migrate --network localnet
-# Migrate identity from v7 to v8
 cp validator_identity.pem node_identity.pem
+# Migrate cli profile from v8 to v9
+supra-v9 profile migrate
 
 # Migrate smr_settings from v7 to v9
 migrate-config smr -p v7-v9 -f smr_settings.toml -t smr_settings.toml
