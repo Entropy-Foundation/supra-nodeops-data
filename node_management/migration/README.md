@@ -1,28 +1,25 @@
 
-### Usage 
+### Usage Example
 
 ```sh
-# If you have not installed poetry, install below
-pip install poetry
+pip install .
 
-# Install migrate-rpc-config
-cd rpc
-poetry install 
+# Migrate rpc config from v7 to v9
+migrate-config rpc -p v7-v9  -f config.toml -t config.toml
+# Migrate db from v7 to v8
+rpc-v8 migrate-db config.toml
+# Migrate db from v8 to v9
+rpc-v9 migrate-db config.toml
 
-# From v7 to v8
-poetry run migrate-rpc-config -f config.toml -t config.toml -p 'v7->v8'
+# Migrate cli profile from v7 to v8
+supra-v8 migrate --network localnet
+# Migrate identity from v7 to v8
+cp validator_identity.pem node_identity.pem
 
-# From v8 to v9
-poetry run migrate-rpc-config -f config.toml -t config.toml -p 'v8->v9'
-
-# From v7 to v9 
-poetry run migrate-rpc-config -f config.toml -t config.toml -p 'v7->v9'
-
-# Install migrate-rpc-config
-cd smr
-poetry install 
-
-poetry run migrate-smr-settings
+# Migrate smr_settings from v7 to v9
+migrate-config smr -p v7-v9 -f smr_settings.toml -t smr_settings.toml
+# Migrate db from v7 to v9
+supra-v9 data migrate -p smr_settings.toml
 ```
 
 #### v9 template
@@ -40,11 +37,12 @@ https://mainnet-data.supra.com/configs/config.toml
 ### Migrate from v7 to v9
 
 
-#### rpc
-migrate-rpc-config -f config.toml -t config.toml -p 'v7->v9'
+#### rpc db migration
 
 (e2e-tests) kaiqichen@Mac:~/Documents/share/repo/smr-moonshot-mainnet/remote_env/Logs/rpc_0$ rpc-v8 migrate-db config.toml
   [======================================================================================================================================================================] 100/100MigrationReport { drop_cf: ["tx_block_info"], migrate_kv: {"tx_block_info__txn_hash_to_block_hash": 8537} }
+
+
 (e2e-tests) kaiqichen@Mac:~/Documents/share/repo/smr-moonshot-mainnet/remote_env/Logs/rpc_0$ rpc-v9 migrate-db config.toml
 Counting the number of entries to remove from prune_index...
 Cleaning up prune index: [00:00:00] ████████████████████ 0/0 00:00:00                                                                                                             Counting the number of entries in block_to_transaction...
@@ -57,18 +55,7 @@ databases_checked:
 - archive
 
 
-#### smr
-
-v7 -> v8 only cli profile and identity file migration
-
-TO BE CONFIRMED: no change in smr_settings.toml and database in v8. 
-
-v7 -> v9 smr_settings migration
-
-
-
-v7 -> v9 database migration
-
+#### smr db migration
 
 (e2e-tests) kaiqichen@Mac:~/Documents/share/repo/smr-moonshot-mainnet/remote_env/Logs/node_0$ supra-v9 data migrate -p smr_settings.toml
 Counting the number of entries in certified_block...

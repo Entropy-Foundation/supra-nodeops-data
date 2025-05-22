@@ -2,7 +2,7 @@ import os
 import shutil
 import tomlkit
 import pytest
-from migrate_smr_settings.cli import migrate_config
+from smr_settings.migrate_path import run_migration as smr_run_migration
 
 CONFIGS = [
     "smr_settings_v7.1.x.toml",
@@ -10,7 +10,7 @@ CONFIGS = [
 ]
 
 @pytest.mark.parametrize("from_file,to_file,migrate_path", [
-    ("smr_settings_v7.1.x.toml", "smr_settings_v9.0.x.toml", "v7->v9"),
+    ("smr_settings_v7.1.x.toml", "smr_settings_v9.0.x.toml", "v7-v9"),
 ])
 def test_migration(tmp_path, from_file, to_file, migrate_path):
     # Copy config files to temp dir
@@ -21,7 +21,7 @@ def test_migration(tmp_path, from_file, to_file, migrate_path):
     tmp_to = tmp_path / to_file
     shutil.copy(from_path, tmp_from)
     # Run migration
-    migrate_config(migrate_path, str(tmp_from), str(tmp_to))
+    smr_run_migration(migrate_path, str(tmp_from), str(tmp_to))
     # Load both files
     with open(tmp_to, "r") as f:
         migrated = tomlkit.parse(f.read())

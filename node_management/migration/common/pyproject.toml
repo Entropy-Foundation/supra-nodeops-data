@@ -1,7 +1,0 @@
-[tool.poetry]
-name = "common"
-version = "0.1.0"
-description = "Common migration utilities"
-
-[tool.poetry.dependencies]
-python = ">=3.10"
