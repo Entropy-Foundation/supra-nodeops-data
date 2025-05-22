@@ -75,17 +75,19 @@ def migrate_config(migrate_path: str, from_path: str, to_path: str):
 def main():
     import argparse
 
+
     parser = argparse.ArgumentParser(
-        description=f"Migrate RPC config: {RPC_CONFIG_MIGRATE_PATH.keys()}"
+        description="Migrate RPC config.toml file from old version to new one."
     )
+    choices_str = ", ".join([f"'{k}'" for k in RPC_CONFIG_MIGRATE_PATH.keys()])
     parser.add_argument(
         "-p",
         "--migrate-path",
         required=True,
         type=str,
-        choices=RPC_CONFIG_MIGRATE_PATH.keys(),
         metavar="",
-        help="Path to migrate the config",
+        choices=list(RPC_CONFIG_MIGRATE_PATH.keys()),
+        help=f"Path to migrate the config. Choices: {choices_str}",
     )
     parser.add_argument(
         "-f",
@@ -93,7 +95,7 @@ def main():
         required=True,
         type=str,
         metavar="",
-        help="Path to the config file to migrate",
+        help="Path to the old version config file to migrate",
     )
     parser.add_argument(
         "-t",
@@ -101,7 +103,7 @@ def main():
         required=True,
         type=str,
         metavar="",
-        help="Path to the new config file",
+        help="Path to save the migrated config file",
     )
     args = parser.parse_args()
     migrate_config(args.migrate_path, args.from_file, args.to_file)
