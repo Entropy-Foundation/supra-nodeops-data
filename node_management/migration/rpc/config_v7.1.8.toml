@@ -31,7 +31,7 @@ chain_instance.genesis_timestamp_microseconds = 1732060800000000
 # The below parameters are node-specific and may be configured as required by the operator.
 
 # The port on which the node should listen for incoming RPC requests.
-bind_addr = "0.0.0.0:26000"
+bind_addr = "0.0.0.0:30000"
 # If `true` then blocks will not be verified before execution. This value should be `false`
 # unless you also control the node from which this RPC node is receiving blocks.
 block_provider_is_trusted = false
