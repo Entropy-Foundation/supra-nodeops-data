@@ -3,7 +3,7 @@ v7 to v8 migration functions for Supra's RPC configuration.
 """
 
 import tomlkit
-from . import utils
+from common import utils
 
 
 def __migrate_sync_ws_parameters(toml_data):

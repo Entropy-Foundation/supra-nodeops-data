@@ -1,20 +1,17 @@
-from .from_v7_to_v8 import migrate_v7_to_v8
-from .from_v8_to_v9 import migrate_v8_to_v9
+from .migrate_v7_to_v9 import migrate_v7_to_v9
 
 from common import migration
 
 
 
-RPC_CONFIG_MIGRATE_PATH = {
-    "v7->v8": [migrate_v7_to_v8],
-    "v8->v9": [migrate_v8_to_v9],
-    "v7->v9": [migrate_v7_to_v8, migrate_v8_to_v9],
+SMR_SETTINGS_MIGRATE_PATH = {
+    "v7->v9": [migrate_v7_to_v9],
 }
 
 
 def migrate_config(migrate_path: str, from_path: str, to_path: str):
-    
-    migration.Migration(RPC_CONFIG_MIGRATE_PATH).migrate_config(
+
+    migration.Migration(SMR_SETTINGS_MIGRATE_PATH).migrate_config(
         migrate_path, from_path, to_path
     )
 
@@ -23,18 +20,19 @@ def main():
 
 
     parser = argparse.ArgumentParser(
-        description="Migrate RPC config.toml file from old version to new one."
+        description="Migrate validator smr_settings.toml file from old version to new one."
     )
-    choices_str = ", ".join([f"'{k}'" for k in RPC_CONFIG_MIGRATE_PATH.keys()])
+    choices_str = ", ".join([f"'{k}'" for k in SMR_SETTINGS_MIGRATE_PATH.keys()])
     parser.add_argument(
         "-p",
         "--migrate-path",
         required=True,
         type=str,
         metavar="",
-        choices=list(RPC_CONFIG_MIGRATE_PATH.keys()),
+        choices=list(SMR_SETTINGS_MIGRATE_PATH.keys()),
         help=f"Migration path choices: {choices_str}",
-    )
+    )   
+
     parser.add_argument(
         "-f",
         "--from-file",

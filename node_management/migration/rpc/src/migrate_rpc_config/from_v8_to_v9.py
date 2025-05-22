@@ -3,7 +3,7 @@ v8 to v9 migration functions for Supra RPC config file.
 """
 
 import tomlkit
-from . import utils
+from common import utils
 
 
 def __migrate_sync_ws_certificates(toml_data):
