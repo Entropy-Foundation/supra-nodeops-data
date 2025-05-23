@@ -1,5 +1,5 @@
 import difflib
-import typing as ty
+
 
 def unified_diff(from_str, to_str, fromfile, tofile):
     diff = difflib.unified_diff(from_str, to_str, fromfile=fromfile, tofile=tofile)
@@ -24,5 +24,3 @@ def print_with_checkmark(message):
     Print a message with a checkmark.
     """
     print(f"✓ {message}")
-
-

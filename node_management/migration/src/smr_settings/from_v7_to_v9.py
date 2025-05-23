@@ -1,24 +1,15 @@
 """
-remove [move_vm] table
+Migration script for upgrading Supra smr_settings config files from version v7 to v9.
 
-move below keys in [node] 
+This module provides functions to transform configuration files in TOML format to be compatible with v9.
+The migration includes the following changes:
 
-# The path to the TLS root certificate authority certificate.
-root_ca_cert_path = "./configs/ca_certificate.pem"
-# The path to the TLS certificate for this node.
-server_cert_path = "./configs/server_supra_certificate.pem"
-# The path to the private key to be used when negotiating TLS connections.
-server_private_key_path = "./configs/server_supra_key.pem"
-
-==>
-
-[node.ws_server.certificates]
-# The path to the TLS root certificate authority certificate.
-root_ca_cert_path = "configs/ca_certificate.pem"
-# The path to the TLS certificate for this node.
-cert_path = "configs/server_supra_certificate.pem"
-# The path to the private key to be used when negotiating TLS connections.
-private_key_path = "configs/server_supra_key.pem"
+1. Removal of the `[move_vm]` table from the configuration.
+2. Migration of WebSocket server certificate paths:
+    - Moves `root_ca_cert_path`, `server_cert_path`, and `server_private_key_path` from the `[node]` table.
+    - Renames `server_cert_path` to `cert_path` and `server_private_key_path` to `private_key_path`.
+    - Creates a new `[node.ws_server.certificates]` table to store these certificate paths.
+    - Ensures that the `[node.ws_server]` table does not exist prior to migration, enforcing correct migration order.
 
 """
 
@@ -27,9 +18,7 @@ from common import utils
 
 
 def __migrate_move_vm_parameters(toml_data):
-    utils.print_with_checkmark(
-        "Removing [move_vm] table"
-    )
+    utils.print_with_checkmark("Removing [move_vm] table")
     toml_data.pop("move_vm")
 
 
@@ -55,7 +44,9 @@ def __migrate_node_ws_certificates(toml_data):
                 print(
                     f"Warning: `{old_key}` does not exist or its value is empty. Your config must be invalid and you should check it manually after migration"
                 )
-            utils.print_with_checkmark(f"Moving `{old_key}` from [node] to {new_key} in [node.ws_server.certificates]")
+            utils.print_with_checkmark(
+                f"Moving `{old_key}` from [node] to {new_key} in [node.ws_server.certificates]"
+            )
             ws_certificates_v9[new_key] = value
         else:
             print(f"Warning: `{old_key}` not found in [node]")

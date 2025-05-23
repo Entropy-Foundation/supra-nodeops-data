@@ -1,5 +1,15 @@
 """
-v8 to v9 migration functions for Supra RPC config file.
+This module provides migration functions to upgrade a Supra RPC config file from version v8 to v9.
+
+Key changes handled by this migration:
+- Moves and renames certificate-related keys from the [synchronization.ws] table to a new [synchronization.ws.certificates] table.
+    - "consensus_client_cert_path" is renamed to "cert_path"
+    - "consensus_client_private_key_path" is renamed to "private_key_path"
+    - "consensus_root_ca_cert_path" is renamed to "root_ca_cert_path"
+- Ensures that the [synchronization] table exists and that the [synchronization.ws.certificates] table does not already exist in the v8 config.
+- Warns if any expected keys are missing or have empty values, indicating potential issues with the input config.
+- Provides utility output to indicate the migration steps being performed.
+
 """
 
 import tomlkit

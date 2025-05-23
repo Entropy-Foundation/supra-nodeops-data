@@ -1,5 +1,35 @@
 """
-v7 to v8 migration functions for Supra's RPC configuration.
+This module provides migration functions to upgrade Supra's RPC configuration from version 7 (v7) to version 8 (v8).
+
+Migration Overview:
+-------------------
+The migration process involves restructuring and updating the configuration TOML data to match the v8 schema. The key changes performed by this migration are:
+
+1. Synchronization Parameters:
+    - Moves the following keys from the root level to a new `[synchronization.ws]` table:
+      - `consensus_rpc`
+      - `consensus_client_cert_path`
+      - `consensus_client_private_key_path`
+      - `consensus_root_ca_cert_path`
+    - Raises an error if a `[synchronization]` table already exists in the v7 config.
+
+2. Chain State Assembler Parameters:
+    - Moves `sync_retry_interval_in_secs` from the root level to a new `[chain_state_assembler]` table.
+    - Ensures `sync_retry_interval_in_secs` is set to `1` as recommended.
+    - Adds a new parameter `certified_block_cache_bucket_size = 50` to `[chain_state_assembler]`.
+    - Raises an error if a `[chain_state_assembler]` table already exists in the v7 config.
+
+3. Consensus Access Tokens:
+    - Adds a new root-level parameter: `consensus_access_tokens = []`.
+
+4. Block Provider Trust:
+    - Adds a new root-level parameter: `block_provider_is_trusted = True`.
+
+Warnings and Checks:
+--------------------
+- Issues warnings if expected keys are missing or have empty values.
+- Uses utility functions to print migration steps with checkmarks for better traceability.
+
 """
 
 import tomlkit
@@ -79,7 +109,9 @@ def __migrate_chain_state_assembler_parameters(toml_data):
         chain_assembler_table[key] = value
     new_parameters = {"certified_block_cache_bucket_size": 50}
     for key, value in new_parameters.items():
-        utils.print_with_checkmark(f"Adding `{key} = {value}` to [chain_state_assembler]")
+        utils.print_with_checkmark(
+            f"Adding `{key} = {value}` to [chain_state_assembler]"
+        )
         chain_assembler_table[key] = value
     toml_data["chain_state_assembler"] = chain_assembler_table
 

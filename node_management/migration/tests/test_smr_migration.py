@@ -9,9 +9,13 @@ CONFIGS = [
     "smr_settings_v9.0.x.toml",
 ]
 
-@pytest.mark.parametrize("from_file,to_file,migrate_path", [
-    ("smr_settings_v7.1.x.toml", "smr_settings_v9.0.x.toml", "v7-v9"),
-])
+
+@pytest.mark.parametrize(
+    "from_file,to_file,migrate_path",
+    [
+        ("smr_settings_v7.1.x.toml", "smr_settings_v9.0.x.toml", "v7-v9"),
+    ],
+)
 def test_migration(tmp_path, from_file, to_file, migrate_path):
     # Copy config files to temp dir
     src_dir = os.path.dirname(os.path.abspath(__file__))
@@ -28,4 +32,6 @@ def test_migration(tmp_path, from_file, to_file, migrate_path):
     with open(to_path, "r") as f:
         expected = tomlkit.parse(f.read())
     # Compare TOML dicts
-    assert migrated == expected, f"Migration {migrate_path} failed: {from_file} -> {to_file}"
+    assert migrated == expected, (
+        f"Migration {migrate_path} failed: {from_file} -> {to_file}"
+    )
