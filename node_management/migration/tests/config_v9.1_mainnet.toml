@@ -1,4 +1,5 @@
-# Version: v9 mainnet
+# Version: v9.1 mainnet
+
 ####################################### PROTOCOL PARAMETERS #######################################
 
 # The below parameters are fixed for the protocol and must be agreed upon by all node operators
@@ -12,6 +13,8 @@ bind_addr = "0.0.0.0:26000"
 # If `true` then blocks will not be verified before execution. This value should be `false`
 # unless you also control the node from which this RPC node is receiving blocks.
 block_provider_is_trusted = true
+# If true, all components will attempt to load their previous state from disk. Otherwise,
+# all components will start in their default state.
 resume = true
 # The path to `supra_committees.json`.
 supra_committees_config = "./configs/supra_committees.json"
@@ -36,7 +39,10 @@ genesis_timestamp_microseconds = 1732060800000000
 
 ######################################### NODE PARAMETERS #########################################
 [chain_state_assembler]
+# Number of certified blocks stored in memory as reference to pending blocks to be executed.
+# Only this amount of certified blocks are stored in memory, for the rest memo is kept.
 certified_block_cache_bucket_size = 50
+# Retry interval for the sync requests for which no response yet available.
 sync_retry_interval_in_secs = 1
 
 [synchronization.ws]
