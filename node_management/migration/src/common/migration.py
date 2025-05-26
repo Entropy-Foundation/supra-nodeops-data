@@ -61,7 +61,8 @@ class Migration:
 
         for fn in migrate_functions:
             print(f"Running migration function: {fn.__name__}")
-            fn(toml_data)
+            toml_data = fn(toml_data)
+        print("!!!!", toml_data, "!!!!")
 
         print(f"Backing up old config to {default_backup_path}")
         tomlkit.dump(original_toml_data, open(default_backup_path, "w"))
@@ -70,7 +71,6 @@ class Migration:
         print(f"Writing new config to {to_path}")
         with open(to_path, "w") as f:
             f.write(tomlkit.dumps(toml_data))
-
         # Print the diff
         from_str = tomlkit.dumps(original_toml_data).splitlines(keepends=True)
         to_str = tomlkit.dumps(toml_data).splitlines(keepends=True)

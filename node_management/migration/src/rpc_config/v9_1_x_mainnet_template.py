@@ -1,73 +1,79 @@
-# Version: v7.1.8
+RPC_CONFIG_V9_1_MAINNET_TEMPLATE = """
+# Version: v9.1 mainnet
+
 ####################################### PROTOCOL PARAMETERS #######################################
 
 # The below parameters are fixed for the protocol and must be agreed upon by all node operators
 # at genesis. They may subsequently be updated via governance decisions.
 
 # Core protocol parameters.
-
-# A unique identifier for this instance of the Supra protocol. Prevents replay attacks across chains.
-chain_instance.chain_id = 8
-# The length of an epoch in seconds.
-chain_instance.epoch_duration_secs = 7200
-# The number of seconds that stake locked in a Stake Pool will automatically be locked up for when
-# its current lockup expires, if no request is made to unlock it.
-#
-# 48 hours.
-chain_instance.recurring_lockup_duration_secs = 172800
-# The number of seconds allocated for voting on governance proposals. Governance will initially be 
-# controlled by The Supra Foundation.
-#
-# 46 hours.
-chain_instance.voting_duration_secs = 165600
-# Determines whether the network will start with a faucet, amongst other things.
-chain_instance.is_testnet = false
-# Wednesday, Nov 20, 2024 12:00:00.000 AM (UTC).
-chain_instance.genesis_timestamp_microseconds = 1732060800000000
-
-
-######################################### NODE PARAMETERS #########################################
-
 # The below parameters are node-specific and may be configured as required by the operator.
 
 # The port on which the node should listen for incoming RPC requests.
-bind_addr = "1.1.1.1:26000"
+bind_addr = "0.0.0.0:26000"
 # If `true` then blocks will not be verified before execution. This value should be `false`
 # unless you also control the node from which this RPC node is receiving blocks.
 block_provider_is_trusted = true
-# The path to the TLS certificate for the connection with the attached validator.
-consensus_client_cert_path = "./xyz/client_supra_certificate.pem"
-# The path to the private key to be used when negotiating TLS connections.
-consensus_client_private_key_path = "./xyz/client_supra_key.pem"
-# The path to the TLS root certificate authority certificate.
-consensus_root_ca_cert_path = "./xyz/ca_certificate.pem"
-# The websocket address of the attached validator.
-consensus_rpc = "ws://2.2.2.2:26000"
 # If true, all components will attempt to load their previous state from disk. Otherwise,
-# all components will start in their default state. Should always be `true` for testnet and
-# mainnet.
+# all components will start in their default state.
 resume = true
 # The path to `supra_committees.json`.
-supra_committees_config = "./xyz/supra_committees.json"
-# The number of seconds to wait before retrying a block sync request.
+supra_committees_config = "./configs/supra_committees.json"
+# The access tokens used to authenticate public RPC requests to this RPC node.
+consensus_access_tokens = []
+
+# A unique identifier for this instance of the Supra protocol. Prevents replay attacks across chains.
+[chain_instance]
+chain_id = 8
+# The length of an epoch in seconds.
+epoch_duration_secs = 7200
+# The number of seconds that stake locked in a Stake Pool will automatically be locked up for when
+# its current lockup expires, if no request is made to unlock it.
+recurring_lockup_duration_secs = 14400
+# The number of seconds allocated for voting on governance proposals. Governance will initially be controlled by The Supra Foundation.
+voting_duration_secs = 7200
+# Determines whether the network will start with a faucet, amongst other things.
+is_testnet = false
+# Wednesday, Nov 20, 2024 12:00:00.000 AM (UTC).
+genesis_timestamp_microseconds = 1732060800000000
+
+
+######################################### NODE PARAMETERS #########################################
+[chain_state_assembler]
+# Number of certified blocks stored in memory as reference to pending blocks to be executed.
+# Only this amount of certified blocks are stored in memory, for the rest memo is kept.
+certified_block_cache_bucket_size = 50
+# Retry interval for the sync requests for which no response yet available.
 sync_retry_interval_in_secs = 1
+
+[synchronization.ws]
+# The websocket address of the attached validator.
+consensus_rpc = "ws://<VALIDATOR_IP>:26000"
+
+[synchronization.ws.certificates]
+# The path to the TLS certificate for the connection with the attached validator.
+cert_path = "./configs/client_supra_certificate.pem"
+# The path to the private key to be used when negotiating TLS connections.
+private_key_path = "./configs/client_supra_key.pem"
+# The path to the TLS root certificate authority certificate.
+root_ca_cert_path = "./configs/ca_certificate.pem"
 
 # Parameters for the RPC Archive database. This database stores the indexes used to serve RPC API calls.
 [database_setup.dbs.archive.rocks_db]
 # The path at which the database should be created.
-path = "./xyz/rpc_archive"
+path = "./configs/rpc_archive"
 # Whether snapshots should be taken of the database.
 enable_snapshots = true
 
 # Parameters for the DKG database.
 [database_setup.dbs.ledger.rocks_db]
 # The path at which the database should be created.
-path = "./xyz/rpc_ledger"
+path = "./configs/rpc_ledger"
 
 # Parameters for the blockchain database.
 [database_setup.dbs.chain_store.rocks_db]
 # The path at which the database should be created.
-path = "./xyz/rpc_store"
+path = "./configs/rpc_store"
 # Whether snapshots should be taken of the database.
 enable_snapshots = true
 
@@ -78,13 +84,15 @@ depth = 2
 # The interval between snapshots in seconds.
 interval_in_seconds = 1800
 # The path at which the snapshots should be stored.
-path = "./xyz/snapshot"
+path = "./configs/snapshot"
 # The number of times to retry a snapshot in the event that it fails unexpectedly.
 retry_count = 3
-# The interval in seconds to wait before retring a snapshot.
+# The interval in seconds to wait before retrying a snapshot.
 retry_interval_in_seconds = 5
 
-# CORS settings for RPC API requests.
+# CORS settings for RPC API requests. 
+# The below settings are the default values required for use in RPC nodes run by validator node operators. 
+# They are optional for non-validators.
 [[allowed_origin]]
 url = "https://rpc-mainnet.supra.com"
 description = "RPC For Supra"
@@ -126,6 +134,7 @@ description = "RPC For suprascan"
 mode = "Server"
 
 [[allowed_origin]]
-url = "http://localhost:27000"
+url = "http://localhost:26000"
 description = "LocalNet"
 mode = "Server"
+"""
