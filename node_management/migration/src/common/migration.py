@@ -61,7 +61,7 @@ class Migration:
 
         for fn in migrate_functions:
             print(f"Running migration function: {fn.__name__}")
-            fn(toml_data)
+            toml_data = fn(toml_data)
 
         print(f"Backing up old config to {default_backup_path}")
         tomlkit.dump(original_toml_data, open(default_backup_path, "w"))
@@ -70,7 +70,6 @@ class Migration:
         print(f"Writing new config to {to_path}")
         with open(to_path, "w") as f:
             f.write(tomlkit.dumps(toml_data))
-
         # Print the diff
         from_str = tomlkit.dumps(original_toml_data).splitlines(keepends=True)
         to_str = tomlkit.dumps(toml_data).splitlines(keepends=True)
@@ -85,9 +84,6 @@ class Migration:
         print(
             f"""
         Config migrated from {from_path} to {to_path}.
-        Please double check above for the diff between old and new config.
         Please ensure to use the new config file for target binary version.
-        NOTE: the comments may not be preserved in the new config file, so 
-        you would need to fix the comments manually.
         """
         )
