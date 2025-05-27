@@ -5,7 +5,6 @@ import pytest
 from smr_settings.migrate_path import run_migration as smr_run_migration
 
 
-
 @pytest.mark.parametrize(
     "from_file,to_file,migrate_path",
     [
