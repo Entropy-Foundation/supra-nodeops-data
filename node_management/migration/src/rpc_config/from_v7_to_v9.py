@@ -28,7 +28,7 @@ The migration process involves restructuring and updating the configuration TOML
 """
 import tomlkit
 
-from .v9_1_x_mainnet_template import RPC_CONFIG_V9_1_MAINNET_TEMPLATE
+from .rpc_config_v9_1_x_mainnet_template import RPC_CONFIG_V9_1_X_MAINNET_TEMPLATE
 
 
 def __migrate_sync_ws_parameters(v7_toml_data, v9_toml_data):
@@ -68,7 +68,10 @@ def __migrate_snapshot_paths(v7_toml_data, v9_toml_data):
 
 
 def migrate_v7_to_v9(v7_toml_data):
-    v9_toml_data = tomlkit.parse(RPC_CONFIG_V9_1_MAINNET_TEMPLATE)
+    """
+    Returns a new TOML data structure that is compatible with RPC config v9.
+    """
+    v9_toml_data = tomlkit.parse(RPC_CONFIG_V9_1_X_MAINNET_TEMPLATE)
     __migrate_sync_ws_parameters(v7_toml_data, v9_toml_data)
     __migrate_chain_state_assembler_parameters(v7_toml_data, v9_toml_data)
     __migrate_bind_addr(v7_toml_data, v9_toml_data)

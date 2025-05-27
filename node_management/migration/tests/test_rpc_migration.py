@@ -36,15 +36,6 @@ def test_migration(tmp_path, from_file, to_file, migrate_path):
     with open(to_path, "r") as f:
         expected = tomlkit.parse(f.read())
 
-    # if "allowed_origin" in migrated:
-    #     del migrated["allowed_origin"]
-    # if "allowed_origin" in expected:
-    #     del expected["allowed_origin"]
-
-    # if "chain_instance" in migrated:
-    #     del migrated["chain_instance"]
-    # if "chain_instance" in expected:
-    #     del expected["chain_instance"]
     # Compare TOML dicts
     assert migrated == expected, (
         f"Migration {migrate_path} failed: {from_file} -> {to_file}"

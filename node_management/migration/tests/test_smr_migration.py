@@ -4,16 +4,12 @@ import tomlkit
 import pytest
 from smr_settings.migrate_path import run_migration as smr_run_migration
 
-CONFIGS = [
-    "smr_settings_v7.1.x.toml",
-    "smr_settings_v9.0.x.toml",
-]
 
 
 @pytest.mark.parametrize(
     "from_file,to_file,migrate_path",
     [
-        ("smr_settings_v7.1.x.toml", "smr_settings_v9.0.x.toml", "v7-v9"),
+        ("smr_settings_v7.1.x.toml", "smr_settings_v7_to_v9_expected.toml", "v7-v9"),
     ],
 )
 def test_migration(tmp_path, from_file, to_file, migrate_path):

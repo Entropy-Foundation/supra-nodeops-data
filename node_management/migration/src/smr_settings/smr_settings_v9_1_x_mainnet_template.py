@@ -1,0 +1,128 @@
+SMR_SETTINGS_V9_1_X_MAINNET_TEMPLATE = """
+# Version: v9.1.x mainnet
+
+####################################### PROTOCOL PARAMETERS #######################################
+
+# The below parameters are fixed for the protocol and must be agreed upon by all node operators
+# at genesis. They may subsequently be updated via governance decisions. Paths are set relative
+# to $SUPRA_HOME.
+
+# Core protocol parameters.
+[instance] 
+# A unique identifier for this instance of the Supra protocol. Prevents replay attacks across chains.
+chain_id = 8
+# The length of an epoch in seconds.
+epoch_duration_secs = 7200
+# The number of seconds that stake locked in a Stake Pool will automatically be locked up for when
+# its current lockup expires, if no request is made to unlock it.
+#
+# 4 hours.
+recurring_lockup_duration_secs = 14400
+# The number of seconds allocated for voting on governance proposals. Governance will initially be 
+# controlled by The Supra Foundation.
+#
+# 2 hours.
+voting_duration_secs = 7200
+# Determines whether the network will start with a faucet, amongst other things.
+is_testnet = false
+# Wednesday, Nov 20, 2024 12:00:00.000 AM (UTC).
+genesis_timestamp_microseconds = 1732060800000000
+
+# Parameters related to the mempool.
+[mempool]
+# The maximum number of milliseconds that a node will wait before proposing a batch when it has
+# at least one transaction to process.
+max_batch_delay_ms = 500
+# The maximum size of a batch. If `max_batch_size_bytes` is reached before `max_batch_delay_ms`
+# then a batch will be proposed immediately.
+max_batch_size_bytes = 5000000
+# The amount of time that a node will wait before repeating a sync request for a batch that it
+# is missing.
+sync_retry_delay_ms = 2000
+# The number of signers of the related batch certificate that a node should ask for a batch
+# attempting to retry a sync request.
+sync_retry_nodes = 3
+
+# Parameters related to the Moonshot consensus protocol. See https:#arxiv.org/abs/2401.01791.
+[moonshot]
+# The maximum number of milliseconds that the timestamp of a proposed block may be
+# ahead of a node's local time when it attempts to vote for the block. Validators
+# must wait until the timestamp of a certified block has passed before advancing to
+# the next round and leaders must wait until the timestamp of the parent block has
+# passed before proposing, so this limit prevents Byzantine leaders from forcing
+# honest nodes to wait indefinitely by proposing blocks with timestamps that are
+# arbitrarily far in the future.
+block_recency_bound_ms = 500
+# Causes the node to stop producing blocks when there are no transactions to be
+# processed. If all nodes set this value to `true` then the chain will not produce
+# new blocks when there are no transactions to process, conserving disk space.
+halt_block_production_when_no_txs = false
+# The type of leader election function to use. This function generates a schedule that ensures
+# that each node eventually succeeds every other.
+leader_elector = "FairSuccession"
+# The delay after which the block proposer will create a new block despite not having any
+# payload items to propose. Denominated in ms.
+max_block_delay_ms = 1250
+# The maximum number of batch availability certificates that may be included in a single
+# consensus block.
+max_payload_items_per_block = 50
+# The number of rounds ahead of self.round for which this node should accept Optimistic Proposals,
+# Votes and Timeouts. Must be the same for all nodes. This parameter helps to limit the amount
+# of memory that Byzantine nodes can consume, but the larger it is the more efficient syncing can
+# become. This trade-off must be balanced.
+message_recency_bound_rounds = 1000
+# The delay after which the node will try to repeat sync requests for missing blocks.
+# Denominated in ms. Should be the same for all nodes.
+sync_retry_delay_ms = 1000
+# The delay after which the node will send a Timeout message for its current Moonshot round,
+# measured from the start of the round. Denominated in ms. Must be the same for all nodes.
+timeout_delay_ms = 3500
+
+######################################### NODE PARAMETERS #########################################
+
+# The below parameters are node-specific and may be configured as required by the operator. Paths
+# should be specified either as absolute paths or as relative to the `supra` binary. 
+#
+# When running the node in Docker and working with a mounted directory, the paths must be specified
+# with reference to the location of the mounter directory in the Docker filesystem rather than the
+# host filesystem. The default settings provided below assume the default Docker configuration
+# provided by the `manage_supra_nodes.sh` script.
+
+[node]
+# The duration in seconds that a node waits between polling its connections to its peers.
+connection_refresh_timeout_sec = 1
+# If true, all components will attempt to load their previous state from disk. Otherwise,
+# all components will start in their default state. Should always be `true` for testnet and
+# mainnet.
+resume = true
+# The port on which to listen for connections from the associated RPC node. Each validator
+# may serve at most one RPC node.
+rpc_access_port = "<PORT>"
+
+[node.ws_server.certificates]
+# The path to the TLS root certificate authority certificate.
+root_ca_cert_path = "<PATH>/ca_certificate.pem"
+# The path to the TLS certificate for this node.
+cert_path = "<PATH>/server_supra_certificate.pem"
+# The path to the private key to be used when negotiating TLS connections.
+private_key_path = "<PATH>/server_supra_key.pem"
+
+# Parameters for the blockchain database.
+[node.database_setup.dbs.chain_store.rocks_db]
+# The path at which the database should be created.
+path = "<PATH>/smr_storage"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = true
+
+# Parameters for the DKG database.
+[node.database_setup.dbs.ledger.rocks_db]
+# The path at which the database should be created.
+path = "<PATH>/ledger_storage"
+
+# Parameters related to database pruning.
+[node.database_setup.prune_config]
+# Data stored more than `epochs_to_retain` ago will be pruned if `enable_pruning = true`.
+epochs_to_retain = 84
+
+"""

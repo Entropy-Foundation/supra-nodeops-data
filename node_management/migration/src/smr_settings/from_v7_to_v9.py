@@ -4,60 +4,48 @@ Migration script for upgrading Supra smr_settings config files from version v7 t
 This module provides functions to transform configuration files in TOML format to be compatible with v9.
 The migration includes the following changes:
 
-1. Removal of the `[move_vm]` table from the configuration.
-2. Migration of WebSocket server certificate paths:
-    - Moves `root_ca_cert_path`, `server_cert_path`, and `server_private_key_path` from the `[node]` table.
-    - Renames `server_cert_path` to `cert_path` and `server_private_key_path` to `private_key_path`.
-    - Creates a new `[node.ws_server.certificates]` table to store these certificate paths.
+1. Migration of WebSocket server certificate paths:
+    - Copy below keys in v7 [node] table to the `[node.ws_server.certificates]` table in v9:
+        - from `root_ca_cert_path` to `root_ca_cert_path`
+        - from `server_cert_path` to `cert_path`
+        - from `server_private_key_path` to `private_key_path`
     - Ensures that the `[node.ws_server]` table does not exist prior to migration, enforcing correct migration order.
-
+2. Copy value from 7 to v9 template in same table:
+    - [node].rpc_access_port
+    - [node.database_setup.dbs.chain_store.rocks_db].path
+    - [node.database_setup.dbs.ledger.rocks_db].path
 """
 
 import tomlkit
 from common import utils
+from .smr_settings_v9_1_x_mainnet_template import SMR_SETTINGS_V9_1_X_MAINNET_TEMPLATE
 
-
-def __migrate_move_vm_parameters(toml_data):
-    utils.print_with_checkmark("Removing [move_vm] table")
-    toml_data.pop("move_vm")
-
-
-def __migrate_node_ws_certificates(toml_data):
-    if "ws_server" in toml_data["node"]:
+def __migrate_ws_certificates(v7_toml_data, v9_toml_data):
+    if "ws_server" in v7_toml_data["node"]:
         raise SystemExit(
-            "Error: [node.ws_server] table should not exist in before v9 config. Please check your migration path matching the version of your config file."
+            "Error: [node.ws_server] table should not exist in v7 config. Please check your migration path matching the version of your config file."
         )
 
-    # Explicitly move and rename these keys from the [node] table
-    # to the [node.ws_server.certificates] table
-    node_ws_certificates_keys_v7_to_v9 = {
-        "root_ca_cert_path": "root_ca_cert_path",
-        "server_cert_path": "cert_path",
-        "server_private_key_path": "private_key_path",
-    }
-    ws_certificates_v9 = {}
+    v7_node_data = v7_toml_data["node"]
+    
+    v9_toml_data["node"]["ws_server"]["certificates"]["root_ca_cert_path"] = v7_node_data.get("root_ca_cert_path")
+    v9_toml_data["node"]["ws_server"]["certificates"]["cert_path"] = v7_node_data.get("server_cert_path")
+    v9_toml_data["node"]["ws_server"]["certificates"]["private_key_path"] = v7_node_data.get("server_private_key_path")
 
-    for old_key, new_key in node_ws_certificates_keys_v7_to_v9.items():
-        if old_key in toml_data["node"]:
-            value = toml_data["node"].pop(old_key)
-            if not value:
-                print(
-                    f"Warning: `{old_key}` does not exist or its value is empty. Your config must be invalid and you should check it manually after migration"
-                )
-            utils.print_with_checkmark(
-                f"Moving `{old_key}` from [node] to {new_key} in [node.ws_server.certificates]"
-            )
-            ws_certificates_v9[new_key] = value
-        else:
-            print(f"Warning: `{old_key}` not found in [node]")
 
-    # Create [node.ws_server.certificates] table
-    toml_data["node"]["ws_server"] = tomlkit.table()
-    toml_data["node"]["ws_server"]["certificates"] = tomlkit.table()
-    for key, value in ws_certificates_v9.items():
-        toml_data["node"]["ws_server"]["certificates"][key] = value
+def __migrate_rpc_access_port(v7_toml_data, v9_toml_data):
+    v9_toml_data["node"]["rpc_access_port"] = v7_toml_data["node"].get("rpc_access_port")
 
+def __migrate_database_paths(v7_toml_data, v9_toml_data):
+    v9_toml_data["node"]["database_setup"]["dbs"]["chain_store"]["rocks_db"]["path"] = v7_toml_data["node"]["database_setup"]["dbs"]["chain_store"]["rocks_db"].get("path")
+    v9_toml_data["node"]["database_setup"]["dbs"]["ledger"]["rocks_db"]["path"] = v7_toml_data["node"]["database_setup"]["dbs"]["ledger"]["rocks_db"].get("path")
 
 def migrate_v7_to_v9(toml_data):
-    __migrate_move_vm_parameters(toml_data)
-    __migrate_node_ws_certificates(toml_data)
+    """
+    Returns a new TOML data structure that is compatible with SMR settings v9.
+    """
+    v9_toml_data = tomlkit.parse(SMR_SETTINGS_V9_1_X_MAINNET_TEMPLATE)
+    __migrate_ws_certificates(toml_data, v9_toml_data)
+    __migrate_rpc_access_port(toml_data, v9_toml_data)
+    __migrate_database_paths(toml_data, v9_toml_data)
+    return v9_toml_data
