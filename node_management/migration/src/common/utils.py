@@ -2,8 +2,10 @@ import difflib
 
 
 def unified_diff(from_str, to_str, fromfile, tofile):
+    print(f"|----------------- Begin diff {fromfile} to {tofile} -----------------|")
     diff = difflib.unified_diff(from_str, to_str, fromfile=fromfile, tofile=tofile)
     __print_colored_diff(diff)
+    print(f"|----------------- End diff {fromfile} to {tofile} -----------------|")
 
 
 def __print_colored_diff(diff):

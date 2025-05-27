@@ -83,7 +83,9 @@ class Migration:
 
         print(
             f"""
-        Config migrated from {from_path} to {to_path}.
-        Please ensure to use the new config file for target binary version.
+        ######################################################################
+        # Config migrated from {from_path} to {to_path}.
+        # Please ensure to use the new config file for target binary version.
+        ######################################################################
         """
         )
