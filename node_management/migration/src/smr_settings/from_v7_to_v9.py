@@ -1,19 +1,17 @@
 """
+This script reads a v7 configuration and migrates relevant settings into a v9 template,
+ensuring compatibility with the new version. The migration process includes:
+- Validating the absence of deprecated tables in v7 configs.
+- Copying and updating node root configuration, including RPC and certificate paths.
+- Migrating database paths for chain_store and ledger RocksDB instances.
+- Optionally migrating snapshot and prune configurations if present.
+- Migrating mempool and moonshot configurations.
+- Scanning each migrated section for recommended updates.
+
+The migration preserves user-specific paths and settings where applicable, while adopting
+the structure and defaults of the v9 template.
 Migration script for upgrading Supra smr_settings config files from version v7 to v9.
 
-This module provides functions to transform configuration files in TOML format to be compatible with v9.
-The migration includes the following changes:
-
-1. Migration of WebSocket server certificate paths:
-    - Copy below keys in v7 [node] table to the `[node.ws_server.certificates]` table in v9:
-        - from `root_ca_cert_path` to `root_ca_cert_path`
-        - from `server_cert_path` to `cert_path`
-        - from `server_private_key_path` to `private_key_path`
-    - Ensures that the `[node.ws_server]` table does not exist prior to migration, enforcing correct migration order.
-2. Copy value from 7 to v9 template in same table:
-    - [node].rpc_access_port
-    - [node.database_setup.dbs.chain_store.rocks_db].path
-    - [node.database_setup.dbs.ledger.rocks_db].path
 """
 
 import tomlkit
