@@ -17,8 +17,7 @@ The migration includes the following changes:
 """
 
 import tomlkit
-from common import utils
-from .smr_settings_v9_1_x_mainnet_template import SMR_SETTINGS_V9_1_X_MAINNET_TEMPLATE
+import importlib.resources
 
 def __migrate_ws_certificates(v7_toml_data, v9_toml_data):
     if "ws_server" in v7_toml_data["node"]:
@@ -44,7 +43,9 @@ def migrate_v7_to_v9(toml_data):
     """
     Returns a new TOML data structure that is compatible with SMR settings v9.
     """
-    v9_toml_data = tomlkit.parse(SMR_SETTINGS_V9_1_X_MAINNET_TEMPLATE)
+    with importlib.resources.files(__package__).joinpath("smr_settings_v9_1_x_mainnet_template.toml").open("r") as f:
+        template = f.read()
+    v9_toml_data = tomlkit.parse(template)
     __migrate_ws_certificates(toml_data, v9_toml_data)
     __migrate_rpc_access_port(toml_data, v9_toml_data)
     __migrate_database_paths(toml_data, v9_toml_data)

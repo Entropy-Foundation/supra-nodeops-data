@@ -3,7 +3,7 @@ import tomlkit
 from copy import deepcopy
 from . import utils
 import shutil
-
+from common.globals import ASSUME_YES
 class MigrationPathSet:
     """
     Base class for migration paths.
@@ -46,10 +46,11 @@ class Migration:
             print(
                 f"A backup of your original config will be saved to: {default_backup_path}"
             )
-            confirm = input(
-                "This will overwrite your original config file. Continue? [y/N]: "
+            confirm = utils.prompt_or_assume_yes(
+                "This will overwrite your original config file. Continue?",
+                ASSUME_YES
             )
-            if confirm.lower() != "y":
+            if not confirm:
                 print("Aborted by user.")
                 return
             # Backup old config

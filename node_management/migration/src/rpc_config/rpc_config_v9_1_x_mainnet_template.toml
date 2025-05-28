@@ -1,7 +1,4 @@
-import tomlkit
 
-
-RPC_CONFIG_V9_1_X_MAINNET_TEMPLATE = """
 # Version: v9.1.x mainnet
 
 ####################################### PROTOCOL PARAMETERS #######################################
@@ -140,11 +137,3 @@ mode = "Server"
 url = "http://localhost:26000"
 description = "LocalNet"
 mode = "Server"
-"""
-
-
-def dump_template():
-    v9_toml_data = tomlkit.parse(RPC_CONFIG_V9_1_X_MAINNET_TEMPLATE)
-    tomlkit.dump(
-        v9_toml_data, open("rpc_config_v9_1_x_mainnet_template.toml", "w")
-    )

@@ -1,7 +1,4 @@
-import tomlkit
 
-
-SMR_SETTINGS_V9_1_X_MAINNET_TEMPLATE = """
 # Version: v9.1.x mainnet
 
 ####################################### PROTOCOL PARAMETERS #######################################
@@ -130,13 +127,3 @@ path = "<PATH>/ledger_storage"
 # Data stored more than `epochs_to_retain` ago will be pruned if `enable_pruning = true`.
 epochs_to_retain = 84
 
-"""
-
-
-
-
-def dump_template():
-    v9_toml_data = tomlkit.parse(SMR_SETTINGS_V9_1_X_MAINNET_TEMPLATE)
-    tomlkit.dump(
-        v9_toml_data, open("smr_settings_v9_1_x_mainnet_template.toml", "w")
-    )
