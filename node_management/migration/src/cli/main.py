@@ -5,6 +5,7 @@ from smr_settings.migrate_path import SMR_SETTINGS_MIGRATE_PATH
 from smr_settings.migrate_path import run_migration as migrate_smr_config
 import common.globals
 
+
 @click.group()
 def main():
     """Migration CLI for Supra configs."""

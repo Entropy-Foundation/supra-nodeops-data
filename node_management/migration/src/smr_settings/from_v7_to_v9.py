@@ -19,6 +19,7 @@ The migration includes the following changes:
 import tomlkit
 import importlib.resources
 
+
 def __migrate_ws_certificates(v7_toml_data, v9_toml_data):
     if "ws_server" in v7_toml_data["node"]:
         raise SystemExit(
@@ -26,24 +27,44 @@ def __migrate_ws_certificates(v7_toml_data, v9_toml_data):
         )
 
     v7_node_data = v7_toml_data["node"]
-    
-    v9_toml_data["node"]["ws_server"]["certificates"]["root_ca_cert_path"] = v7_node_data.get("root_ca_cert_path")
-    v9_toml_data["node"]["ws_server"]["certificates"]["cert_path"] = v7_node_data.get("server_cert_path")
-    v9_toml_data["node"]["ws_server"]["certificates"]["private_key_path"] = v7_node_data.get("server_private_key_path")
+
+    v9_toml_data["node"]["ws_server"]["certificates"]["root_ca_cert_path"] = (
+        v7_node_data.get("root_ca_cert_path")
+    )
+    v9_toml_data["node"]["ws_server"]["certificates"]["cert_path"] = v7_node_data.get(
+        "server_cert_path"
+    )
+    v9_toml_data["node"]["ws_server"]["certificates"]["private_key_path"] = (
+        v7_node_data.get("server_private_key_path")
+    )
 
 
 def __migrate_rpc_access_port(v7_toml_data, v9_toml_data):
-    v9_toml_data["node"]["rpc_access_port"] = v7_toml_data["node"].get("rpc_access_port")
+    v9_toml_data["node"]["rpc_access_port"] = v7_toml_data["node"].get(
+        "rpc_access_port"
+    )
+
 
 def __migrate_database_paths(v7_toml_data, v9_toml_data):
-    v9_toml_data["node"]["database_setup"]["dbs"]["chain_store"]["rocks_db"]["path"] = v7_toml_data["node"]["database_setup"]["dbs"]["chain_store"]["rocks_db"].get("path")
-    v9_toml_data["node"]["database_setup"]["dbs"]["ledger"]["rocks_db"]["path"] = v7_toml_data["node"]["database_setup"]["dbs"]["ledger"]["rocks_db"].get("path")
+    v9_toml_data["node"]["database_setup"]["dbs"]["chain_store"]["rocks_db"]["path"] = (
+        v7_toml_data["node"]["database_setup"]["dbs"]["chain_store"]["rocks_db"].get(
+            "path"
+        )
+    )
+    v9_toml_data["node"]["database_setup"]["dbs"]["ledger"]["rocks_db"]["path"] = (
+        v7_toml_data["node"]["database_setup"]["dbs"]["ledger"]["rocks_db"].get("path")
+    )
+
 
 def migrate_v7_to_v9(toml_data):
     """
     Returns a new TOML data structure that is compatible with SMR settings v9.
     """
-    with importlib.resources.files(__package__).joinpath("smr_settings_v9_1_x_mainnet_template.toml").open("r") as f:
+    with (
+        importlib.resources.files(__package__)
+        .joinpath("smr_settings_v9_1_x_mainnet_template.toml")
+        .open("r") as f
+    ):
         template = f.read()
     v9_toml_data = tomlkit.parse(template)
     __migrate_ws_certificates(toml_data, v9_toml_data)

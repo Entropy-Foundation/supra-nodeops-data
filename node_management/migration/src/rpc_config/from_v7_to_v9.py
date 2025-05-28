@@ -26,15 +26,17 @@ The migration process involves restructuring and updating the configuration TOML
     - [[database_setup.snapshot_config]].path
 
 4.  recommended updates
-    - `sync_retry_interval_in_secs` 
+    - `sync_retry_interval_in_secs`
     - `block_provider_is_trusted`
     - `enable_snapshots`
     - `enable_pruning`
 """
+
 import tomlkit
 import importlib.resources
-from common.globals import ASSUME_YES
-from common.utils import prompt_or_assume_yes, print_with_checkmark, scan_and_recommend_updates
+from common.utils import (
+    scan_and_recommend_updates,
+)
 
 
 def __migrate_root_config(v7_toml_data, v9_toml_data):
@@ -44,6 +46,7 @@ def __migrate_root_config(v7_toml_data, v9_toml_data):
 
     print("\nScanning root level configuration ...")
     scan_and_recommend_updates(v7_toml_data, v9_toml_data)
+
 
 def __migrate_sync_ws_config(v7_toml_data, v9_toml_data):
     if "synchronization" in v7_toml_data:
@@ -55,8 +58,12 @@ def __migrate_sync_ws_config(v7_toml_data, v9_toml_data):
 
     v9_sync_ws_certificates = v9_sync_ws_config["certificates"]
     v9_sync_ws_certificates["cert_path"] = v7_toml_data["consensus_client_cert_path"]
-    v9_sync_ws_certificates["private_key_path"] = v7_toml_data["consensus_client_private_key_path"]
-    v9_sync_ws_certificates["root_ca_cert_path"] = v7_toml_data["consensus_root_ca_cert_path"]
+    v9_sync_ws_certificates["private_key_path"] = v7_toml_data[
+        "consensus_client_private_key_path"
+    ]
+    v9_sync_ws_certificates["root_ca_cert_path"] = v7_toml_data[
+        "consensus_root_ca_cert_path"
+    ]
 
 
 def __migrate_chain_state_assembler_config(v7_toml_data, v9_toml_data):
@@ -78,17 +85,26 @@ def __migrate_db_archive_config(v7_toml_data, v9_toml_data):
     print("\nScanning archive configuration ...")
     scan_and_recommend_updates(v7_db_archive_config, v9_db_archive_config)
 
+
 def __migrate_db_chain_store_config(v7_toml_data, v9_toml_data):
-    v9_db_chain_store_config = v9_toml_data["database_setup"]["dbs"]["chain_store"]["rocks_db"]
-    v7_db_chain_store_config = v7_toml_data["database_setup"]["dbs"]["chain_store"]["rocks_db"]
+    v9_db_chain_store_config = v9_toml_data["database_setup"]["dbs"]["chain_store"][
+        "rocks_db"
+    ]
+    v7_db_chain_store_config = v7_toml_data["database_setup"]["dbs"]["chain_store"][
+        "rocks_db"
+    ]
 
     v9_db_chain_store_config["path"] = v7_db_chain_store_config["path"]
 
     print("\nScanning chain store configuration ...")
     scan_and_recommend_updates(v7_db_chain_store_config, v9_db_chain_store_config)
 
+
 def __migrate_db_ledger_config(v7_toml_data, v9_toml_data):
-    v9_toml_data["database_setup"]["dbs"]["ledger"]["rocks_db"]["path"] = v7_toml_data["database_setup"]["dbs"]["ledger"]["rocks_db"]["path"]
+    v9_toml_data["database_setup"]["dbs"]["ledger"]["rocks_db"]["path"] = v7_toml_data[
+        "database_setup"
+    ]["dbs"]["ledger"]["rocks_db"]["path"]
+
 
 def __migrate_snapshot_config(v7_toml_data, v9_toml_data):
     v9_snapshot_config = v9_toml_data["database_setup"]["snapshot_config"]
@@ -105,7 +121,11 @@ def migrate_v7_to_v9(v7_toml_data):
     Returns a new TOML data structure that is compatible with RPC config v9.
     """
 
-    with importlib.resources.files(__package__).joinpath("rpc_config_v9_1_x_mainnet_template.toml").open("r") as f:
+    with (
+        importlib.resources.files(__package__)
+        .joinpath("rpc_config_v9_1_x_mainnet_template.toml")
+        .open("r") as f
+    ):
         template = f.read()
     v9_toml_data = tomlkit.parse(template)
     __migrate_root_config(v7_toml_data, v9_toml_data)

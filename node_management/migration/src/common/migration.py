@@ -4,6 +4,8 @@ from copy import deepcopy
 from . import utils
 import shutil
 from common.globals import ASSUME_YES
+
+
 class MigrationPathSet:
     """
     Base class for migration paths.
@@ -47,8 +49,7 @@ class Migration:
                 f"A backup of your original config will be saved to: {default_backup_path}"
             )
             confirm = utils.prompt_or_assume_yes(
-                "This will overwrite your original config file. Continue?",
-                ASSUME_YES
+                "This will overwrite your original config file. Continue?", ASSUME_YES
             )
             if not confirm:
                 print("Aborted by user.")
@@ -65,7 +66,6 @@ class Migration:
         for fn in migrate_functions:
             print(f"Running migration function: {fn.__name__}")
             toml_data = fn(toml_data)
-
 
         # Write new config
         print(f"Writing new config to {to_path}")
