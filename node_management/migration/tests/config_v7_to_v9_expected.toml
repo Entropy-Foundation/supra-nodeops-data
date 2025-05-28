@@ -62,7 +62,7 @@ root_ca_cert_path = "./xyz/ca_certificate.pem"
 # The path at which the database should be created.
 path = "./xyz/rpc_archive"
 # Whether snapshots should be taken of the database.
-enable_snapshots = true
+enable_snapshots = false
 
 # Parameters for the DKG database.
 [database_setup.dbs.ledger.rocks_db]
@@ -74,7 +74,7 @@ path = "./xyz/rpc_ledger"
 # The path at which the database should be created.
 path = "./xyz/rpc_store"
 # Whether snapshots should be taken of the database.
-enable_snapshots = true
+enable_snapshots = false
 
 # Parameters for the database snapshot service.
 [database_setup.snapshot_config]

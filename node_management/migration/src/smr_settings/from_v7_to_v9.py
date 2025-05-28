@@ -49,3 +49,9 @@ def migrate_v7_to_v9(toml_data):
     __migrate_rpc_access_port(toml_data, v9_toml_data)
     __migrate_database_paths(toml_data, v9_toml_data)
     return v9_toml_data
+
+
+def dump_template(v9_toml_data):
+    tomlkit.dump(
+        v9_toml_data, open("../templates/smr_settings_v9_1_x_mainnet_template.toml", "w")
+    )

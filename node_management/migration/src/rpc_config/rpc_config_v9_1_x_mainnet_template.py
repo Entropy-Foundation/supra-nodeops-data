@@ -1,3 +1,6 @@
+import tomlkit
+
+
 RPC_CONFIG_V9_1_X_MAINNET_TEMPLATE = """
 # Version: v9.1.x mainnet
 
@@ -63,7 +66,7 @@ root_ca_cert_path = "<PATH>/ca_certificate.pem"
 # The path at which the database should be created.
 path = "<PATH>/rpc_archive"
 # Whether snapshots should be taken of the database.
-enable_snapshots = true
+enable_snapshots = false
 
 # Parameters for the DKG database.
 [database_setup.dbs.ledger.rocks_db]
@@ -75,7 +78,7 @@ path = "<PATH>/rpc_ledger"
 # The path at which the database should be created.
 path = "<PATH>/rpc_store"
 # Whether snapshots should be taken of the database.
-enable_snapshots = true
+enable_snapshots = false
 
 # Parameters for the database snapshot service.
 [database_setup.snapshot_config]
@@ -138,3 +141,10 @@ url = "http://localhost:26000"
 description = "LocalNet"
 mode = "Server"
 """
+
+
+def dump_template():
+    v9_toml_data = tomlkit.parse(RPC_CONFIG_V9_1_X_MAINNET_TEMPLATE)
+    tomlkit.dump(
+        v9_toml_data, open("rpc_config_v9_1_x_mainnet_template.toml", "w")
+    )

@@ -113,6 +113,8 @@ path = "./configs/smr_storage"
 # Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
 # old will be deleted.
 enable_pruning = true
+# Whether snapshots should be taken of the database.
+enable_snapshots = false
 
 # Parameters for the DKG database.
 [node.database_setup.dbs.ledger.rocks_db]

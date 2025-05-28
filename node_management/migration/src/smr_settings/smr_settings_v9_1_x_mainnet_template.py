@@ -1,3 +1,6 @@
+import tomlkit
+
+
 SMR_SETTINGS_V9_1_X_MAINNET_TEMPLATE = """
 # Version: v9.1.x mainnet
 
@@ -114,6 +117,8 @@ path = "<PATH>/smr_storage"
 # Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
 # old will be deleted.
 enable_pruning = true
+# Whether snapshots should be taken of the database.
+enable_snapshots = false
 
 # Parameters for the DKG database.
 [node.database_setup.dbs.ledger.rocks_db]
@@ -126,3 +131,12 @@ path = "<PATH>/ledger_storage"
 epochs_to_retain = 84
 
 """
+
+
+
+
+def dump_template():
+    v9_toml_data = tomlkit.parse(SMR_SETTINGS_V9_1_X_MAINNET_TEMPLATE)
+    tomlkit.dump(
+        v9_toml_data, open("smr_settings_v9_1_x_mainnet_template.toml", "w")
+    )
