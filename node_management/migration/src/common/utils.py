@@ -50,31 +50,36 @@ def truncate(val, max_len=50):
 
 
 def scan_and_recommend_updates(
-    original_data: tomlkit.items.Table, to_data: tomlkit.items.Table
+    original_table: tomlkit.items.Table, to_table: tomlkit.items.Table
 ):
     """
-    Scan the original data and recommend updates to the new version's data.
+    Scan the original table and recommend updates to the new version's table.
+    
+    Only scan top level keys and values (i.e. skip nested tables).
+    
+    If a key exists in both tables, compare their values and prompt the user
+    to either keep the original value or use the new version's recommended value.
     """
     from .globals import ASSUME_YES
 
-    for k, v in to_data.items():
+    for k, v in to_table.items():
         if not isinstance(v, tomlkit.items.AbstractTable):
-            if k in original_data:
-                if to_data[k] != original_data[k]:
+            if k in original_table:
+                if to_table[k] != original_table[k]:
                     use_recommended = prompt_or_assume_yes(
-                        f"`{k} = {truncate(original_data[k])}` is not recommended for new version.\n"
-                        f"Do you want to apply the recommended config: `{k} = {truncate(to_data[k])}`?",
+                        f"`{k} = {truncate(original_table[k])}` is not recommended for new version.\n"
+                        f"Do you want to apply the recommended config: `{k} = {truncate(to_table[k])}`?",
                         ASSUME_YES,
                     )
                     if use_recommended:
                         print_with_checkmark(
-                            f"Apply recommended config: `{k} = {truncate(to_data[k])}`"
+                            f"Apply recommended config: `{k} = {truncate(to_table[k])}`"
                         )
                     else:
                         print_with_checkmark(
-                            f"Keep original config: `{k} = {truncate(original_data[k])}`"
+                            f"Keep original config: `{k} = {truncate(original_table[k])}`"
                         )
-                        to_data[k] = original_data[k]
+                        to_table[k] = original_table[k]
             else:
                 print_with_checkmark(
                     f"`{k}` not found in original config, using new version's default value: {truncate(v)}"

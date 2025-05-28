@@ -15,8 +15,6 @@ from rpc_config.migrate_path import run_migration as rpc_run_migration
 @pytest.mark.parametrize(
     "from_file,to_file,migrate_path",
     [
-        # ("config_v7.1.8.toml", "config_v8.0.2.toml", "v7-v8"),
-        # ("config_v8.0.2.toml", "config_v9.0.7.toml", "v8-v9"),
         ("config_v7.1.8.toml", "config_v7_to_v9_expected.toml", "v7-v9"),
     ],
 )
@@ -30,7 +28,6 @@ def test_migration(tmp_path, from_file, to_file, migrate_path):
     shutil.copy(from_path, tmp_from)
     # Run migration
     import common.globals
-
     common.globals.ASSUME_YES = True
     rpc_run_migration(migrate_path, str(tmp_from), str(tmp_to))
     # Load both files

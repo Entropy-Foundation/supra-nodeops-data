@@ -10,7 +10,7 @@
 # The below parameters are node-specific and may be configured as required by the operator.
 
 # The port on which the node should listen for incoming RPC requests.
-bind_addr = "<IPv4>:26000"
+bind_addr = "0.0.0.0:26000"
 # If `true` then blocks will not be verified before execution. This value should be `false`
 # unless you also control the node from which this RPC node is receiving blocks.
 block_provider_is_trusted = true
@@ -18,7 +18,7 @@ block_provider_is_trusted = true
 # all components will start in their default state.
 resume = true
 # The path to `supra_committees.json`.
-supra_committees_config = "<PATH>/supra_committees.json"
+supra_committees_config = "./configs/supra_committees.json"
 # The access tokens used to authenticate public RPC requests to this RPC node.
 consensus_access_tokens = []
 
@@ -52,30 +52,46 @@ consensus_rpc = "ws://<VALIDATOR_IP>:26000"
 
 [synchronization.ws.certificates]
 # The path to the TLS certificate for the connection with the attached validator.
-cert_path = "<PATH>/client_supra_certificate.pem"
+cert_path = "./configs/client_supra_certificate.pem"
 # The path to the private key to be used when negotiating TLS connections.
-private_key_path = "<PATH>/client_supra_key.pem"
+private_key_path = "./configs/client_supra_key.pem"
 # The path to the TLS root certificate authority certificate.
-root_ca_cert_path = "<PATH>/ca_certificate.pem"
+root_ca_cert_path = "./configs/ca_certificate.pem"
 
 # Parameters for the RPC Archive database. This database stores the indexes used to serve RPC API calls.
 [database_setup.dbs.archive.rocks_db]
 # The path at which the database should be created.
-path = "<PATH>/rpc_archive"
+path = "./configs/rpc_archive"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = false
 # Whether snapshots should be taken of the database.
 enable_snapshots = false
 
 # Parameters for the DKG database.
 [database_setup.dbs.ledger.rocks_db]
 # The path at which the database should be created.
-path = "<PATH>/rpc_ledger"
+path = "./configs/rpc_ledger"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = false
+# Whether snapshots should be taken of the database.
+enable_snapshots = false
 
 # Parameters for the blockchain database.
 [database_setup.dbs.chain_store.rocks_db]
 # The path at which the database should be created.
-path = "<PATH>/rpc_store"
+path = "./configs/rpc_store"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = false
 # Whether snapshots should be taken of the database.
 enable_snapshots = false
+
+# Parameters related to database pruning.
+[database_setup.prune_config]
+# Data stored more than `epochs_to_retain` ago will be pruned if `enable_pruning = true`.
+epochs_to_retain = 336
 
 # Parameters for the database snapshot service.
 [database_setup.snapshot_config]
@@ -84,7 +100,7 @@ depth = 2
 # The interval between snapshots in seconds.
 interval_in_seconds = 1800
 # The path at which the snapshots should be stored.
-path = "<PATH>/configs/snapshot"
+path = "./configs/snapshot"
 # The number of times to retry a snapshot in the event that it fails unexpectedly.
 retry_count = 3
 # The interval in seconds to wait before retrying a snapshot.

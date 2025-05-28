@@ -1,35 +1,20 @@
 """
+This module provides migration utilities to upgrade Supra's RPC configuration files from version v7 to v9.
+
+Migration Steps:
+----------------
+- Loads a v9 template configuration as the migration base.
+- Migrates root-level fields such as 'supra_committees_config' and 'bind_addr'.
+- Migrates synchronization WebSocket settings, including consensus RPC and certificate paths.
+- Migrates chain state assembler configuration.
+- Migrates database paths for archive, chain store, and ledger components.
+- Migrates snapshot configuration paths.
+- For each section, scans and recommends updates for any legacy fields.
+- Ensures that deprecated or unexpected sections in v7 (e.g., 'synchronization', 'chain_state_assembler') are flagged as errors.
+
+The main entrypoint is `migrate_v7_to_v9(v7_toml_data)`, which returns a new TOML data structure compatible with v9.
 This module provides migration functions to upgrade Supra's RPC configuration from version v7 to v9.
 
-Migration Overview:
--------------------
-The migration process involves restructuring and updating the configuration TOML data to match the v9 schema. The key changes performed by this migration are:
-
-1. Synchronization Parameters:
-    - Copy the following key value from v7 root level to a new `[synchronization.ws]` table in the v9 template:
-      - `consensus_rpc`
-    - Copy the following keys' values from v7 root level to the `[synchronization.ws.certificates]` table in v9 template:
-      - from `consensus_client_cert_path` to `cert_path`
-      - from `consensus_client_private_key_path` to `private_key_path`
-      - from `consensus_root_ca_cert_path` to `root_ca_cert_path`
-    - Raises an error if a `[synchronization]` table already exists in the v7 config.
-
-2. Chain State Assembler Parameters:
-    - Raises an error if a `[chain_state_assembler]` table already exists in the v7 config.
-
-3. Copy value from 7 to v9 template in same table:
-    - bind_addr
-    - supra_committees_config
-    - [database_setup.dbs.archive.rocks_db].path
-    - [database_setup.dbs.ledger.rocks_db].path
-    - [database_setup.dbs.chain_store.rocks_db].path
-    - [[database_setup.snapshot_config]].path
-
-4.  recommended updates
-    - `sync_retry_interval_in_secs`
-    - `block_provider_is_trusted`
-    - `enable_snapshots`
-    - `enable_pruning`
 """
 
 import tomlkit
@@ -101,12 +86,25 @@ def __migrate_db_chain_store_config(v7_toml_data, v9_toml_data):
 
 
 def __migrate_db_ledger_config(v7_toml_data, v9_toml_data):
-    v9_toml_data["database_setup"]["dbs"]["ledger"]["rocks_db"]["path"] = v7_toml_data[
-        "database_setup"
-    ]["dbs"]["ledger"]["rocks_db"]["path"]
+    v9_db_ledger_config = v9_toml_data["database_setup"]["dbs"]["ledger"]["rocks_db"]
+    v7_db_ledger_config = v7_toml_data["database_setup"]["dbs"]["ledger"]["rocks_db"]
+    v9_db_ledger_config["path"] = v7_db_ledger_config["path"]
+    print("\nScanning ledger configuration ...")
+    scan_and_recommend_updates(v7_db_ledger_config, v9_db_ledger_config)
 
 
 def __migrate_snapshot_config(v7_toml_data, v9_toml_data):
+    # Optional config
+    if "snapshot_config" not in v7_toml_data["database_setup"]:
+        print(
+            "Warning: [database_setup.snapshot_config] table not found in v7 config. Skipping migration."
+        )
+        return
+    if "snapshot_config" not in v9_toml_data["database_setup"]:
+        raise SystemExit(
+            "Error: [database_setup.snapshot_config] table should exist in v9 template."
+        )
+        
     v9_snapshot_config = v9_toml_data["database_setup"]["snapshot_config"]
     v7_snapshot_config = v7_toml_data["database_setup"]["snapshot_config"]
 
@@ -114,6 +112,24 @@ def __migrate_snapshot_config(v7_toml_data, v9_toml_data):
 
     print("\nScanning snapshot configuration ...")
     scan_and_recommend_updates(v7_snapshot_config, v9_snapshot_config)
+
+
+def __migrate_prune_config(v7_toml_data, v9_toml_data):
+    # Optional config
+    if "prune_config" not in v7_toml_data["database_setup"]:
+        print(
+            "Warning: [database_setup.prune_config] table not found in v7 config. Skipping migration."
+        )
+        return
+    if "prune_config" not in v9_toml_data["database_setup"]:
+        raise SystemExit(
+            "Error: [database_setup.prune_config] table should exist in v9 template."
+        )
+    v9_prune_config = v9_toml_data["database_setup"]["prune_config"]
+    v7_prune_config = v7_toml_data["database_setup"]["prune_config"]
+
+    print("\nScanning prune configuration ...")
+    scan_and_recommend_updates(v7_prune_config, v9_prune_config)
 
 
 def migrate_v7_to_v9(v7_toml_data):
@@ -135,4 +151,5 @@ def migrate_v7_to_v9(v7_toml_data):
     __migrate_db_ledger_config(v7_toml_data, v9_toml_data)
     __migrate_db_chain_store_config(v7_toml_data, v9_toml_data)
     __migrate_snapshot_config(v7_toml_data, v9_toml_data)
+    __migrate_prune_config(v7_toml_data, v9_toml_data)
     return v9_toml_data
