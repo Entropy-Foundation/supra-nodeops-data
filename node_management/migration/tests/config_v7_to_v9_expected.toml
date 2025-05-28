@@ -61,20 +61,36 @@ root_ca_cert_path = "./xyz/ca_certificate.pem"
 [database_setup.dbs.archive.rocks_db]
 # The path at which the database should be created.
 path = "./xyz/rpc_archive"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = false
 # Whether snapshots should be taken of the database.
-enable_snapshots = true
+enable_snapshots = false
 
 # Parameters for the DKG database.
 [database_setup.dbs.ledger.rocks_db]
 # The path at which the database should be created.
 path = "./xyz/rpc_ledger"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = false
+# Whether snapshots should be taken of the database.
+enable_snapshots = false
 
 # Parameters for the blockchain database.
 [database_setup.dbs.chain_store.rocks_db]
 # The path at which the database should be created.
 path = "./xyz/rpc_store"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = false
 # Whether snapshots should be taken of the database.
-enable_snapshots = true
+enable_snapshots = false
+
+# Parameters related to database pruning.
+[database_setup.prune_config]
+# Data stored more than `epochs_to_retain` ago will be pruned if `enable_pruning = true`.
+epochs_to_retain = 336
 
 # Parameters for the database snapshot service.
 [database_setup.snapshot_config]

@@ -100,26 +100,46 @@ rpc_access_port = 26000
 
 [node.ws_server.certificates]
 # The path to the TLS root certificate authority certificate.
-root_ca_cert_path = "./configs/ca_certificate.pem"
+root_ca_cert_path = "./tests/ca_certificate.pem"
 # The path to the TLS certificate for this node.
-cert_path = "./configs/server_supra_certificate.pem"
+cert_path = "./tests/server_supra_certificate.pem"
 # The path to the private key to be used when negotiating TLS connections.
-private_key_path = "./configs/server_supra_key.pem"
+private_key_path = "./tests/server_supra_key.pem"
 
 # Parameters for the blockchain database.
 [node.database_setup.dbs.chain_store.rocks_db]
 # The path at which the database should be created.
-path = "./configs/smr_storage"
+path = "./tests/smr_storage"
 # Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
 # old will be deleted.
 enable_pruning = true
+# Whether snapshots should be taken of the database.
+enable_snapshots = false
 
 # Parameters for the DKG database.
 [node.database_setup.dbs.ledger.rocks_db]
 # The path at which the database should be created.
-path = "./configs/ledger_storage"
+path = "./tests/ledger_storage"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = true
+# Whether snapshots should be taken of the database.
+enable_snapshots = false
 
 # Parameters related to database pruning.
 [node.database_setup.prune_config]
 # Data stored more than `epochs_to_retain` ago will be pruned if `enable_pruning = true`.
 epochs_to_retain = 84
+
+# Parameters for the database snapshot service.
+[node.database_setup.snapshot_config]
+# The number of snapshots to retain, including the latest.
+depth = 2
+# The interval between snapshots in seconds.
+interval_in_seconds = 1800
+# The path at which the snapshots should be stored.
+path = "./configs/snapshot"
+# The number of times to retry a snapshot in the event that it fails unexpectedly.
+retry_count = 3
+# The interval in seconds to wait before retrying a snapshot.
+retry_interval_in_seconds = 5

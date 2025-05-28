@@ -15,3 +15,13 @@ migrate-config = "cli.main:main"
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find] 
+where = ["src"]
+
+[tool.setuptools.package-data]
+rpc_config = ["rpc_config_v9_1_x_mainnet_template.toml"]
+smr_settings = ["smr_settings_v9_1_x_mainnet_template.toml"]
