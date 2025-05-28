@@ -56,16 +56,5 @@ def smr(migrate_path, from_file, to_file):
     migrate_smr_config(migrate_path, from_file, to_file)
 
 
-@main.command()
-def dump_templates():
-    """Dump built-in template to TOML files."""
-    from rpc_config.rpc_config_v9_1_x_mainnet_template import dump_template as dump_rpc_template
-    from smr_settings.smr_settings_v9_1_x_mainnet_template import dump_template as dump_smr_template
-
-    dump_rpc_template()
-    dump_smr_template()
-    print("Templates dumped successfully.")
-
-
 if __name__ == "__main__":
     main()

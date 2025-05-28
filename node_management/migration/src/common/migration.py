@@ -2,7 +2,7 @@ import typing as ty
 import tomlkit
 from copy import deepcopy
 from . import utils
-
+import shutil
 
 class MigrationPathSet:
     """
@@ -36,9 +36,9 @@ class Migration:
 
     def migrate_config(self, migrate_choice: str, from_path: str, to_path: str):
         migrate_functions = self.migrate_path.get_migration_functions(migrate_choice)
-
         from_version, to_version = self.migrate_path.get_versions(migrate_choice)
         default_backup_path = f"{from_path}_{from_version}.bak"
+
         if from_path == to_path:
             print(
                 f"Warning: The source and destination paths are the same ({from_path})."
@@ -52,24 +52,24 @@ class Migration:
             if confirm.lower() != "y":
                 print("Aborted by user.")
                 return
+            # Backup old config
+            print(f"Backing up old config to {default_backup_path}")
+            shutil.copyfile(from_path, default_backup_path)
 
         with open(from_path, "r") as f:
-            toml_data = tomlkit.parse(f.read())
+            toml_data = tomlkit.load(f)
 
-        # Backup old config
         original_toml_data = deepcopy(toml_data)
 
         for fn in migrate_functions:
             print(f"Running migration function: {fn.__name__}")
             toml_data = fn(toml_data)
 
-        print(f"Backing up old config to {default_backup_path}")
-        tomlkit.dump(original_toml_data, open(default_backup_path, "w"))
 
         # Write new config
         print(f"Writing new config to {to_path}")
         with open(to_path, "w") as f:
-            f.write(tomlkit.dumps(toml_data))
+            tomlkit.dump(toml_data, f)
         # Print the diff
         from_str = tomlkit.dumps(original_toml_data).splitlines(keepends=True)
         to_str = tomlkit.dumps(toml_data).splitlines(keepends=True)
@@ -83,7 +83,12 @@ class Migration:
 
         print(
             f"""
-        Config migrated from {from_path} to {to_path}.
-        Please ensure to use the new config file for target binary version.
+        ######################################################################
+        # Config migrated from {from_path} to {to_path}.
+        # 
+        # Please review the diff above for changes made during migration.
+        # 
+        # Please ensure to use the new config file for target binary version.
+        ######################################################################
         """
         )
