@@ -8,13 +8,12 @@ Migration Steps:
 - Migrates synchronization WebSocket settings, including consensus RPC and certificate paths.
 - Migrates chain state assembler configuration.
 - Migrates database paths for archive, chain store, and ledger components.
-- Migrates snapshot configuration paths.
+- Migrates snapshot configuration paths if present; skips if not found in v7.
+- Migrates prune configuration if present; skips if not found in v7.
 - For each section, scans and recommends updates for any legacy fields.
-- Ensures that deprecated or unexpected sections in v7 (e.g., 'synchronization', 'chain_state_assembler') are flagged as errors.
+- Exit early if any unexpected sections in v7 (e.g., 'synchronization', 'chain_state_assembler') are present before migration.
 
 The main entrypoint is `migrate_v7_to_v9(v7_toml_data)`, which returns a new TOML data structure compatible with v9.
-This module provides migration functions to upgrade Supra's RPC configuration from version v7 to v9.
-
 """
 
 import tomlkit

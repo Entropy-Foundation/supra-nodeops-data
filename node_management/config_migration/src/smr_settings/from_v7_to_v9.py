@@ -1,16 +1,18 @@
 """
-This script reads a v7 configuration and migrates relevant settings into a v9 template,
-ensuring compatibility with the new version. The migration process includes:
-- Validating the absence of deprecated tables in v7 configs.
-- Copying and updating node root configuration, including RPC and certificate paths.
-- Migrating database paths for chain_store and ledger RocksDB instances.
-- Optionally migrating snapshot and prune configurations if present.
-- Migrating mempool and moonshot configurations.
-- Scanning each migrated section for recommended updates.
+This module provides migration utilities to upgrade Supra's Validator configuration files from version v7 to v9.
 
-The migration preserves user-specific paths and settings where applicable, while adopting
-the structure and defaults of the v9 template.
-Migration script for upgrading Supra smr_settings config files from version v7 to v9.
+Migration Steps:
+----------------
+- Loads a v9 template configuration as the migration base.
+- Migrates root-level fields such as rpc_access_port and certificate paths.
+- Migrates database paths for chain store and ledger components.
+- Migrates snapshot configuration paths if present; skips if not found in v7.
+- Migrates prune configuration if present; skips if not found in v7.
+- Migrates mempool and moonshot sections, preserving all settings.
+- For each section, scans and recommends updates for any legacy fields.
+- Exit early if any unexpected sections in v7 (e.g., [node.ws_server]) are present before migration.
+
+The main entrypoint is `migrate_v7_to_v9(v7_toml_data)`, which returns a new TOML data structure compatible with v9.
 
 """
 
@@ -108,7 +110,7 @@ def __migrate_moonshot_config(v7_toml_data, v9_toml_data):
     print("\nScanning moonshot configuration ...")
     scan_and_recommend_updates(v7_moonshot_config, v9_moonshot_config)
 
-def migrate_v7_to_v9(toml_data):
+def migrate_v7_to_v9(v7_toml_data):
     """
     Returns a new TOML data structure that is compatible with SMR settings v9.
     """
@@ -119,11 +121,11 @@ def migrate_v7_to_v9(toml_data):
     ):
         template = f.read()
     v9_toml_data = tomlkit.parse(template)
-    __migrate_node_root_config(toml_data, v9_toml_data)
-    __migrate_db_ledger(toml_data, v9_toml_data)
-    __migrate_db_chain_store(toml_data, v9_toml_data)
-    __migrate_snapshot_config(toml_data, v9_toml_data)
-    __migrate_prune_config(toml_data, v9_toml_data)
-    __migrate_mempool_config(toml_data, v9_toml_data)
-    __migrate_moonshot_config(toml_data, v9_toml_data)
+    __migrate_node_root_config(v7_toml_data, v9_toml_data)
+    __migrate_db_ledger(v7_toml_data, v9_toml_data)
+    __migrate_db_chain_store(v7_toml_data, v9_toml_data)
+    __migrate_snapshot_config(v7_toml_data, v9_toml_data)
+    __migrate_prune_config(v7_toml_data, v9_toml_data)
+    __migrate_mempool_config(v7_toml_data, v9_toml_data)
+    __migrate_moonshot_config(v7_toml_data, v9_toml_data)
     return v9_toml_data
