@@ -1,0 +1,13 @@
+# Ignore all files in the ruff cache directory
+**/.ruff_cache
+
+**/build/
+
+# egg-info
+**/*.egg-info/
+
+# python cache 
+**/__pycache__/
+
+# pytest
+**/.hypothesis/
