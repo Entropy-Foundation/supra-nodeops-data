@@ -1,0 +1,155 @@
+
+# Version: v9.1.x mainnet
+
+####################################### PROTOCOL PARAMETERS #######################################
+
+# The below parameters are fixed for the protocol and must be agreed upon by all node operators
+# at genesis. They may subsequently be updated via governance decisions.
+
+# Core protocol parameters.
+# The below parameters are node-specific and may be configured as required by the operator.
+
+# The port on which the node should listen for incoming RPC requests.
+bind_addr = "0.0.0.0:26000"
+# If `true` then blocks will not be verified before execution. This value should be `false`
+# unless you also control the node from which this RPC node is receiving blocks.
+block_provider_is_trusted = true
+# If true, all components will attempt to load their previous state from disk. Otherwise,
+# all components will start in their default state.
+resume = true
+# The path to `supra_committees.json`.
+supra_committees_config = "./configs/supra_committees.json"
+# The access tokens used to authenticate public RPC requests to this RPC node.
+consensus_access_tokens = []
+
+# A unique identifier for this instance of the Supra protocol. Prevents replay attacks across chains.
+[chain_instance]
+chain_id = 8
+# The length of an epoch in seconds.
+epoch_duration_secs = 7200
+# The number of seconds that stake locked in a Stake Pool will automatically be locked up for when
+# its current lockup expires, if no request is made to unlock it.
+recurring_lockup_duration_secs = 14400
+# The number of seconds allocated for voting on governance proposals. Governance will initially be controlled by The Supra Foundation.
+voting_duration_secs = 7200
+# Determines whether the network will start with a faucet, amongst other things.
+is_testnet = false
+# Wednesday, Nov 20, 2024 12:00:00.000 AM (UTC).
+genesis_timestamp_microseconds = 1732060800000000
+
+
+######################################### NODE PARAMETERS #########################################
+[chain_state_assembler]
+# Number of certified blocks stored in memory as reference to pending blocks to be executed.
+# Only this amount of certified blocks are stored in memory, for the rest memo is kept.
+certified_block_cache_bucket_size = 50
+# Retry interval for the sync requests for which no response yet available.
+sync_retry_interval_in_secs = 1
+
+[synchronization.ws]
+# The websocket address of the attached validator.
+consensus_rpc = "ws://<VALIDATOR_IP>:26000"
+
+[synchronization.ws.certificates]
+# The path to the TLS certificate for the connection with the attached validator.
+cert_path = "./configs/client_supra_certificate.pem"
+# The path to the private key to be used when negotiating TLS connections.
+private_key_path = "./configs/client_supra_key.pem"
+# The path to the TLS root certificate authority certificate.
+root_ca_cert_path = "./configs/ca_certificate.pem"
+
+# Parameters for the RPC Archive database. This database stores the indexes used to serve RPC API calls.
+[database_setup.dbs.archive.rocks_db]
+# The path at which the database should be created.
+path = "./configs/rpc_archive"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = false
+# Whether snapshots should be taken of the database.
+enable_snapshots = false
+
+# Parameters for the DKG database.
+[database_setup.dbs.ledger.rocks_db]
+# The path at which the database should be created.
+path = "./configs/rpc_ledger"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = false
+# Whether snapshots should be taken of the database.
+enable_snapshots = false
+
+# Parameters for the blockchain database.
+[database_setup.dbs.chain_store.rocks_db]
+# The path at which the database should be created.
+path = "./configs/rpc_store"
+# Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
+# old will be deleted.
+enable_pruning = false
+# Whether snapshots should be taken of the database.
+enable_snapshots = false
+
+# Parameters related to database pruning.
+[database_setup.prune_config]
+# Data stored more than `epochs_to_retain` ago will be pruned if `enable_pruning = true`.
+epochs_to_retain = 336
+
+# Parameters for the database snapshot service.
+[database_setup.snapshot_config]
+# The number of snapshots to retain, including the latest.
+depth = 2
+# The interval between snapshots in seconds.
+interval_in_seconds = 1800
+# The path at which the snapshots should be stored.
+path = "./configs/snapshot"
+# The number of times to retry a snapshot in the event that it fails unexpectedly.
+retry_count = 3
+# The interval in seconds to wait before retrying a snapshot.
+retry_interval_in_seconds = 5
+
+# CORS settings for RPC API requests. 
+# The below settings are the default values required for use in RPC nodes run by validator node operators. 
+# They are optional for non-validators.
+[[allowed_origin]]
+url = "https://rpc-mainnet.supra.com"
+description = "RPC For Supra"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet1.supra.com"
+description = "RPC For nodeops group1"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet2.supra.com"
+description = "RPC For nodeops group2"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet3.supra.com"
+description = "RPC For nodeops group3"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet4.supra.com"
+description = "RPC For nodeops group4"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-mainnet5.supra.com"
+description = "RPC For nodeops group5"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-wallet-mainnet.supra.com"
+description = "RPC For Supra Wallet"
+mode = "Server"
+
+[[allowed_origin]]
+url = "https://rpc-suprascan-mainnet.supra.com"
+description = "RPC For suprascan"
+mode = "Server"
+
+[[allowed_origin]]
+url = "http://localhost:26000"
+description = "LocalNet"
+mode = "Server"
