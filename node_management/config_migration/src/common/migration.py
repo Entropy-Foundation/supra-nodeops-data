@@ -41,6 +41,16 @@ class Migration:
         from_version, to_version = self.migrate_path.get_versions(migrate_choice)
         default_backup_path = f"{from_path}_{from_version}.bak"
 
+        with open(from_path, "r") as f:
+            toml_data = tomlkit.load(f)
+
+        original_toml_data = deepcopy(toml_data)
+
+        for fn in migrate_functions:
+            print(f"Running migration function: {fn.__name__}")
+            toml_data = fn(toml_data)
+
+        # Check before overwriting the same file. 
         if from_path == to_path:
             print(
                 f"Warning: The source and destination paths are the same ({from_path})."
@@ -52,20 +62,12 @@ class Migration:
                 "This will overwrite your original config file. Continue?", ASSUME_YES
             )
             if not confirm:
-                print("Aborted by user.")
-                return
+                raise SystemExit(
+                    "Migration aborted by user. No changes were made."
+                )
             # Backup old config
             print(f"Backing up old config to {default_backup_path}")
             shutil.copyfile(from_path, default_backup_path)
-
-        with open(from_path, "r") as f:
-            toml_data = tomlkit.load(f)
-
-        original_toml_data = deepcopy(toml_data)
-
-        for fn in migrate_functions:
-            print(f"Running migration function: {fn.__name__}")
-            toml_data = fn(toml_data)
 
         # Write new config
         print(f"Writing new config to {to_path}")
