@@ -57,18 +57,19 @@ function migrate_rpc() {
     RPC_V9_IMAGE=asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/rpc-node:v9.0.12
     RPC_V8_IMAGE=asia-docker.pkg.dev/supra-devnet-misc/supra-mainnet/rpc-node:v8.0.3
 
-    # Define shell functions instead of aliases, so they are available in the script
     rpc-v8() { docker exec -it rpc-v8 /supra/rpc_node "$@"; }
     rpc-v9() { docker exec -it rpc-v9 /supra/rpc_node "$@"; }
-    # Stop the Docker container if it is running.
-    # TODO(SC) stop running container so that releasing database lock
+
+    echo "Stop the User's container if it is running."
     docker stop "$CONTAINER_NAME" || :
 
-    # Stop all rpc containers
+    echo "Prepare containers needed for running migration."
+    # Stop+Remove rpc containers for migration if they exist.
     docker rm -f rpc-v8 || :
     docker rm -f rpc-v9 || :
     docker container ls
 
+    # Start rpc containers with proper env and volume mounts.
     docker run --name rpc-v8 \
         -v "$HOST_SUPRA_HOME:/supra/configs" \
         -e "SUPRA_HOME=/supra/configs/" \
