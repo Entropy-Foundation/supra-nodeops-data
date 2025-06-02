@@ -60,7 +60,7 @@ function migrate_rpc() {
     rpc-v8() { docker exec -it rpc-v8 /supra/rpc_node "$@"; }
     rpc-v9() { docker exec -it rpc-v9 /supra/rpc_node "$@"; }
 
-    echo "Stop the User's container if it is running."
+    echo "Stop the user's container if it is running."
     docker stop "$CONTAINER_NAME" || :
 
     echo "Prepare containers needed for running migration."
@@ -92,11 +92,13 @@ function migrate_rpc() {
     echo "Migrate db from v8 to v9"
     rpc-v9 migrate-db configs/config.toml
 
+    echo "Cleanup containers used for migration."
     # Remove containers again because we do not need them after migration
     docker rm -f rpc-v8 || :
     docker rm -f rpc-v9 || :
     docker container ls
 
+    echo "Remove snapshot and snapshots directories"
     # Remove any existing snapshots. If we don't do this then they will start to take
     # up a large amount of disk space during the sync.
     # TODO(sc): WHY?
@@ -128,14 +130,16 @@ function migrate_validator() {
     supra-v9() { docker exec -it supra-v9 /supra/supra "$@"; }
 
 
-    # Stop the Docker container if it is running.
-    # TODO(SC) stop running container so that releasing database lock
+    echo "Stop the users' container if it is running."
     docker stop "$CONTAINER_NAME" || :
 
+    echo "Prepare containers needed for running migration."
+    # Stop+Remove supra containers for migration if they exist.
     docker rm -f supra-v8 || :
     docker rm -f supra-v9 || :
     docker container ls
 
+    # Start supra containers with proper env and volume mounts.
     docker run --name supra-v8 \
         -v "$HOST_SUPRA_HOME:/supra/configs" \
         -e "SUPRA_HOME=/supra/configs/" \
@@ -163,11 +167,12 @@ function migrate_validator() {
     supra-v9 data migrate -p configs/smr_settings.toml
 
 
-    # Remove containers again because we do not need them after migration
+    echo "Cleanup containers used for migration."
     docker rm -f supra-v8 || :
     docker rm -f supra-v9 || :
     docker container ls
 
+    echo "Remove snapshot and snapshots directories"
     # Remove any existing snapshots. If we don't do this then they will start to take
     # up a large amount of disk space during the sync.
     # TODO(sc): WHY?
