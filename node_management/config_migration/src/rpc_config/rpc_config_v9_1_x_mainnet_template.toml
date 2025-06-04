@@ -1,4 +1,3 @@
-
 # Version: v9.1.x mainnet
 
 ####################################### PROTOCOL PARAMETERS #######################################
@@ -64,7 +63,7 @@ root_ca_cert_path = "./configs/ca_certificate.pem"
 path = "./configs/rpc_archive"
 # Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
 # old will be deleted.
-enable_pruning = false
+enable_pruning = true
 # Whether snapshots should be taken of the database.
 enable_snapshots = false
 
@@ -74,7 +73,7 @@ enable_snapshots = false
 path = "./configs/rpc_ledger"
 # Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
 # old will be deleted.
-enable_pruning = false
+enable_pruning = true
 # Whether snapshots should be taken of the database.
 enable_snapshots = false
 
@@ -84,7 +83,7 @@ enable_snapshots = false
 path = "./configs/rpc_store"
 # Whether the database should be pruned. If `true`, data that is more than `epochs_to_retain`
 # old will be deleted.
-enable_pruning = false
+enable_pruning = true
 # Whether snapshots should be taken of the database.
 enable_snapshots = false
 
