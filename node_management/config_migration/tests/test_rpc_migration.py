@@ -21,6 +21,7 @@ def test_migration(tmp_path, from_file, to_file, migrate_path):
     shutil.copy(from_path, tmp_from)
     # Run migration
     import common.globals
+
     common.globals.ASSUME_YES = True
     rpc_run_migration(migrate_path, str(tmp_from), str(tmp_to))
     # Load both files

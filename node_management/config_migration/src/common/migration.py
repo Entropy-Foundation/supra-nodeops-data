@@ -50,7 +50,7 @@ class Migration:
             print(f"Running migration function: {fn.__name__}")
             toml_data = fn(toml_data)
 
-        # Check before overwriting the same file. 
+        # Check before overwriting the same file.
         if from_path == to_path:
             print(
                 f"Warning: The source and destination paths are the same ({from_path})."
@@ -62,9 +62,7 @@ class Migration:
                 "This will overwrite your original config file. Continue?", ASSUME_YES
             )
             if not confirm:
-                raise SystemExit(
-                    "Migration aborted by user. No changes were made."
-                )
+                raise SystemExit("Migration aborted by user. No changes were made.")
             # Backup old config
             print(f"Backing up old config to {default_backup_path}")
             shutil.copyfile(from_path, default_backup_path)

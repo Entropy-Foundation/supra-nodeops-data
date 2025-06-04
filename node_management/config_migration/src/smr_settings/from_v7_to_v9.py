@@ -20,6 +20,7 @@ import tomlkit
 import importlib.resources
 from common.utils import scan_and_recommend_updates
 
+
 def __migrate_node_root_config(v7_toml_data, v9_toml_data):
     if "ws_server" in v7_toml_data["node"]:
         raise SystemExit(
@@ -33,19 +34,26 @@ def __migrate_node_root_config(v7_toml_data, v9_toml_data):
     v9_node_ws_certificates = v9_node_data["ws_server"]["certificates"]
     v9_node_ws_certificates["root_ca_cert_path"] = v7_node_data["root_ca_cert_path"]
     v9_node_ws_certificates["cert_path"] = v7_node_data["server_cert_path"]
-    v9_node_ws_certificates["private_key_path"] = v7_node_data["server_private_key_path"]
+    v9_node_ws_certificates["private_key_path"] = v7_node_data[
+        "server_private_key_path"
+    ]
 
     print("\nScanning node root configuration ...")
     scan_and_recommend_updates(v7_node_data, v9_node_data)
 
 
 def __migrate_db_chain_store(v7_toml_data, v9_toml_data):
-    v9_db_chain_store = v9_toml_data["node"]["database_setup"]["dbs"]["chain_store"]["rocks_db"]
-    v7_db_chain_store = v7_toml_data["node"]["database_setup"]["dbs"]["chain_store"]["rocks_db"]
+    v9_db_chain_store = v9_toml_data["node"]["database_setup"]["dbs"]["chain_store"][
+        "rocks_db"
+    ]
+    v7_db_chain_store = v7_toml_data["node"]["database_setup"]["dbs"]["chain_store"][
+        "rocks_db"
+    ]
     v9_db_chain_store["path"] = v7_db_chain_store["path"]
 
     print("\nScanning chain store configuration ...")
     scan_and_recommend_updates(v7_db_chain_store, v9_db_chain_store)
+
 
 def __migrate_db_ledger(v7_toml_data, v9_toml_data):
     v9_db_ledger = v9_toml_data["node"]["database_setup"]["dbs"]["ledger"]["rocks_db"]
@@ -55,6 +63,7 @@ def __migrate_db_ledger(v7_toml_data, v9_toml_data):
     print("\nScanning ledger configuration ...")
     scan_and_recommend_updates(v7_db_ledger, v9_db_ledger)
 
+
 def __migrate_snapshot_config(v7_toml_data, v9_toml_data):
     """
     snapshot_config is optional,
@@ -62,7 +71,7 @@ def __migrate_snapshot_config(v7_toml_data, v9_toml_data):
     """
     if "snapshot_config" not in v7_toml_data["node"]["database_setup"]:
         return
-    
+
     if "snapshot_config" not in v9_toml_data["node"]["database_setup"]:
         raise SystemExit(
             "Error: [node.database_setup.snapshot_config] table should exist in v9 template."
@@ -76,13 +85,14 @@ def __migrate_snapshot_config(v7_toml_data, v9_toml_data):
     print("\nScanning snapshot configuration ...")
     scan_and_recommend_updates(v7_snapshot_config, v9_snapshot_config)
 
+
 def __migrate_prune_config(v7_toml_data, v9_toml_data):
     """
     prune_config is optional, so we skip if it does not exist in v7.
     """
     if "prune_config" not in v7_toml_data["node"]["database_setup"]:
         return
-    
+
     if "prune_config" not in v9_toml_data["node"]["database_setup"]:
         raise SystemExit(
             "Error: [node.database_setup.prune_config] table should exist in v9 template."
@@ -96,12 +106,12 @@ def __migrate_prune_config(v7_toml_data, v9_toml_data):
 
 
 def __migrate_mempool_config(v7_toml_data, v9_toml_data):
-
     v9_mempool_config = v9_toml_data["mempool"]
     v7_mempool_config = v7_toml_data["mempool"]
 
     print("\nScanning mempool configuration ...")
     scan_and_recommend_updates(v7_mempool_config, v9_mempool_config)
+
 
 def __migrate_moonshot_config(v7_toml_data, v9_toml_data):
     v9_moonshot_config = v9_toml_data["moonshot"]
@@ -109,6 +119,7 @@ def __migrate_moonshot_config(v7_toml_data, v9_toml_data):
 
     print("\nScanning moonshot configuration ...")
     scan_and_recommend_updates(v7_moonshot_config, v9_moonshot_config)
+
 
 def migrate_v7_to_v9(v7_toml_data):
     """

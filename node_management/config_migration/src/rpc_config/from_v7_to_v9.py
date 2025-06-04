@@ -103,7 +103,7 @@ def __migrate_snapshot_config(v7_toml_data, v9_toml_data):
         raise SystemExit(
             "Error: [database_setup.snapshot_config] table should exist in v9 template."
         )
-        
+
     v9_snapshot_config = v9_toml_data["database_setup"]["snapshot_config"]
     v7_snapshot_config = v7_toml_data["database_setup"]["snapshot_config"]
 

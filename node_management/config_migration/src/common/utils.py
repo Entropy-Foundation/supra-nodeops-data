@@ -54,9 +54,9 @@ def scan_and_recommend_updates(
 ):
     """
     Scan the original table and recommend updates to the new version's table.
-    
+
     Only scan top level keys and values (i.e. skip nested tables).
-    
+
     If a key exists in both tables, compare their values and prompt the user
     to either keep the original value or use the new version's recommended value.
     """
