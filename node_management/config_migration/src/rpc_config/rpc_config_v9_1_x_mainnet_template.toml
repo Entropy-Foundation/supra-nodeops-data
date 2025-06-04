@@ -91,7 +91,7 @@ enable_snapshots = false
 # Parameters related to database pruning.
 [database_setup.prune_config]
 # Data stored more than `epochs_to_retain` ago will be pruned if `enable_pruning = true`.
-epochs_to_retain = 336
+epochs_to_retain = 1008
 
 # Parameters for the database snapshot service.
 [database_setup.snapshot_config]
