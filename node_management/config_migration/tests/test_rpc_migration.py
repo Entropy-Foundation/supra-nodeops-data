@@ -4,13 +4,6 @@ import tomlkit
 import pytest
 from rpc_config.migrate_path import run_migration as rpc_run_migration
 
-# CONFIGS = [
-#     "config_v7.1.8.toml",
-#     "config_v8.0.2.toml",
-#     "config_v9.0.7.toml",
-#     "config_v9.1_mainnet.toml",
-# ]
-
 
 @pytest.mark.parametrize(
     "from_file,to_file,migrate_path",
