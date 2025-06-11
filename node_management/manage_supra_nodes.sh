@@ -613,11 +613,11 @@ EOF
 
     # Set AWS CLI credentials and bucket name based on the selected network
     if [ "$NETWORK" == "mainnet" ]; then
-        export AWS_ACCESS_KEY_ID="c64bed98a85ccd3197169bf7363ce94f"
-        export AWS_SECRET_ACCESS_KEY="0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7"
+        export AWS_ACCESS_KEY_ID="ba3e917e8f1eb35772059f8eb3736cac"
+        export AWS_SECRET_ACCESS_KEY="432bbb569498de327299a40b6b2357dc282ff4158e939efbe6c75807c4885e3b"
     elif [ "$NETWORK" == "testnet" ]; then
-        export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
-        export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
+        export AWS_ACCESS_KEY_ID="20f826bb30ea7205116e2adc7f19e34d"
+        export AWS_SECRET_ACCESS_KEY="1ad51161a013f1115381197929524cc1ff91fbccf016717652af8adf8fa2ed98"
 
         if is_validator; then
             bucket_name="testnet-validator-snapshot"
