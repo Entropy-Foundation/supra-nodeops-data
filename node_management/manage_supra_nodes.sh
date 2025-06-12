@@ -512,24 +512,12 @@ function update() {
 
 #---------------------------------------------------------- Start ----------------------------------------------------------
 
-function copy_rpc_root_config_files() {
-    docker cp "$HOST_SUPRA_HOME"/config.toml "$CONTAINER_NAME:/supra/"
-    docker cp "$HOST_SUPRA_HOME"/genesis.blob "$CONTAINER_NAME:/supra/"
-}
-
-function copy_validator_root_config_files() {
-    docker cp "$HOST_SUPRA_HOME"/smr_settings.toml "$CONTAINER_NAME:/supra/"
-    docker cp "$HOST_SUPRA_HOME"/genesis.blob "$CONTAINER_NAME:/supra/"
-}
-
 function start_rpc_node() {
-    copy_rpc_root_config_files
     start_rpc_docker_container
     docker exec -itd $CONTAINER_NAME /supra/rpc_node start
 }
 
 function start_validator_node() {
-    copy_validator_root_config_files
     start_validator_docker_container
     prompt_for_cli_password
 

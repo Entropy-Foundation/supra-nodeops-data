@@ -15,13 +15,13 @@ epoch_duration_secs = 7200
 # The number of seconds that stake locked in a Stake Pool will automatically be locked up for when
 # its current lockup expires, if no request is made to unlock it.
 #
-# 4 hours.
-recurring_lockup_duration_secs = 14400
+# 48 hours.
+recurring_lockup_duration_secs = 172800
 # The number of seconds allocated for voting on governance proposals. Governance will initially be 
 # controlled by The Supra Foundation.
 #
-# 2 hours.
-voting_duration_secs = 7200
+# 46 hours.
+voting_duration_secs = 165600
 # Determines whether the network will start with a faucet, amongst other things.
 is_testnet = false
 # Wednesday, Nov 20, 2024 12:00:00.000 AM (UTC).
