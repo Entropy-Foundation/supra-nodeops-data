@@ -554,73 +554,20 @@ function start() {
 
 #---------------------------------------------------------- Sync ----------------------------------------------------------
 
-function sync_once() {
-    local endpoint_url="$1"
-    local remote_root="$2"
-
-    local sync_options="--endpoint-url $endpoint_url --delete"
-
-    if [ -n "$EXACT_TIMESTAMPS" ]; then
-        sync_options+=" --exact-timestamps"
-    fi
-
-    if is_validator; then
-        # Create the local directory if it doesn't exist
-        mkdir -p "$HOST_SUPRA_HOME/smr_storage"
-
-        # Remove the CURRENT index file. `aws sync` sometimes fails to update this properly.
-        # This ensures that the correct version of the file will be downloaded from the snapshot.
-        rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
-
-        # Download store snapshots concurrently
-        aws s3 sync "$remote_root/store/" "$HOST_SUPRA_HOME/smr_storage/" $sync_options
-    elif is_rpc; then
-        # Create the local directories if they don't exist
-        mkdir -p "$HOST_SUPRA_HOME/rpc_store"
-        mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
-
-        # Remove the CURRENT index files. `aws sync` sometimes fails to update this properly.
-        # This ensures that the correct version of the file will be downloaded from the snapshot.
-        rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
-        rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
-
-        # Run the two download commands concurrently in the background
-        aws s3 sync "$remote_root/store/" "$HOST_SUPRA_HOME/rpc_store/" $sync_options &
-        aws s3 sync "$remote_root/archive/" "$HOST_SUPRA_HOME/rpc_archive/" $sync_options &
-        wait
-    fi
-}
-
 function sync() {
-    # Install AWS CLI if not installed
-    install_aws_cli
-
-    # Ensure AWS CLI configuration is set up properly
-    mkdir -p ~/.aws
-    if [ ! -f ~/.aws/config ]; then
-        cat <<EOF >~/.aws/config
-[default]
-region = auto
-output = json
-s3 =
-    max_concurrent_requests = 1000
-    multipart_threshold = 512MB
-    multipart_chunksize = 256MB
-EOF
+    if [[ "$1" == "--dry-run" ]]; then
+        echo "Running in dry-run mode..."
+        DRY_RUN="--dry-run"
+    else
+        DRY_RUN=""
     fi
 
-    local bucket_name="mainnet"
-    # Define the custom endpoint for Cloudflare R2
-    local endpoint_url="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
-
-    # Set AWS CLI credentials and bucket name based on the selected network
-    if [ "$NETWORK" == "mainnet" ]; then
-        export AWS_ACCESS_KEY_ID="ba3e917e8f1eb35772059f8eb3736cac"
-        export AWS_SECRET_ACCESS_KEY="432bbb569498de327299a40b6b2357dc282ff4158e939efbe6c75807c4885e3b"
+    # Validate required inputs
+    if [ -n "$SNAPSHOT_SOURCE" ]; then
+        bucket_name="$SNAPSHOT_SOURCE"
+    elif [ "$NETWORK" == "mainnet" ]; then
+        bucket_name="mainnet"
     elif [ "$NETWORK" == "testnet" ]; then
-        export AWS_ACCESS_KEY_ID="20f826bb30ea7205116e2adc7f19e34d"
-        export AWS_SECRET_ACCESS_KEY="1ad51161a013f1115381197929524cc1ff91fbccf016717652af8adf8fa2ed98"
-
         if is_validator; then
             bucket_name="testnet-validator-snapshot"
         elif is_rpc; then
@@ -628,39 +575,58 @@ EOF
         fi
     fi
 
-    if [ -n "$SNAPSHOT_SOURCE" ]; then
-        # The user overrode the default snapshot source via the optional parameter.
-        bucket_name="$SNAPSHOT_SOURCE"
-    fi
+    echo "Bucket_name: $bucket_name"
+    echo "Host Supra Home: $HOST_SUPRA_HOME"
+    echo "Network: $NETWORK"
 
-    local remote_root="s3://${bucket_name}/snapshots"
-    # The file that will be present in the `snapshots` directory of the bucket if the
-    # snapshot uploader is currently uploading an update.
-    local lock_file="$remote_root/UPLOAD_IN_PROGRESS"
-
-    # Sync the current state of the bucket.
-    sync_once "$endpoint_url" "$remote_root"
-
-    # Check if an upload is in progress. If it is, then the sync that we just completed
-    # will have terminated in an inconsistent state. Wait for the upload to finish, then
-    # sync one more time.
-    if aws s3 ls "$lock_file" --endpoint-url "$endpoint_url"; then
-        echo "A new snapshot is currently being uploaded to the bucket. "
-        echo -n "Waiting for the upload to complete. This may take 10-15 minutes..."
-
-        # Wait for the upload to complete.
-        while aws s3 ls "$lock_file" --endpoint-url "$endpoint_url"
-        do
-            sleep 10
-        done
-
-        # Sync the updated state, this time without the `--exact-timestamps` if it was set,
-        # since we only want to sync the new diff. This might fail in certain edge cases,
-        # in which case the operator should manually run the command again with the `--exact-timestamps`
-        # flag present, but should be more efficient most of the time.
-        echo "Downloading the new diff..."
-        unset "$EXACT_TIMESTAMPS"
-        sync_once "$endpoint_url" "$remote_root"
+    if is_validator; then
+        mkdir -p "$HOST_SUPRA_HOME/smr_storage"
+        rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
+        rclone copy cloudflare-r2:$bucket_name/snapshots/store "$HOST_SUPRA_HOME/smr_storage" \
+          --s3-chunk-size 512M \
+          --s3-upload-cutoff 512M \
+          --multi-thread-streams 16 \
+          --transfers 32 \
+          --checkers 128 \
+          --fast-list \
+          --low-level-retries 20 \
+          --retries 10 \
+          --progress \
+          --log-level INFO \
+          --log-file ./rclone-r2-optimized.log
+    elif is_rpc; then
+        mkdir -p "$HOST_SUPRA_HOME/rpc_store"
+        mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
+        rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
+        rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
+        echo "Bucket_name: $bucket_name"
+        echo "Host Supra Home: $HOST_SUPRA_HOME"
+        echo "Network: $NETWORK"
+        rclone copy cloudflare-r2:$bucket_name/snapshots/store "$HOST_SUPRA_HOME/rpc_store" \
+          --s3-chunk-size 512M \
+          --s3-upload-cutoff 512M \
+          --multi-thread-streams 16 \
+          --transfers 32 \
+          --checkers 128 \
+          --fast-list \
+          --low-level-retries 20 \
+          --retries 10 \
+          --progress \
+          --log-level INFO \
+          --log-file ./rclone-r2-optimized.log &
+        rclone copy cloudflare-r2:$bucket_name/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive" \
+          --s3-chunk-size 512M \
+          --s3-upload-cutoff 512M \
+          --multi-thread-streams 16 \
+          --transfers 32 \
+          --checkers 128 \
+          --fast-list \
+          --low-level-retries 20 \
+          --retries 10 \
+          --progress \
+          --log-level INFO \
+          --log-file ./rclone-r2-optimized.log &
+        wait
     fi
 }
 
