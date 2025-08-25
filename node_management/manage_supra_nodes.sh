@@ -50,12 +50,18 @@ function parse_args() {
             -e | --exact-timestamps)
                 EXACT_TIMESTAMPS="SET"
                 ;;
+            -v | --verbose)
+                VERBOSE="SET"
+                ;;
             -s | --snapshot-source)
                 # TODO: Could add verification for this parameter to ensure that operators
                 # don't accidentally sync the snapshot for the wrong environment.
                 SNAPSHOT_SOURCE="$2"
-                # Shift out the args parameter.
+                # Shift out the arg's parameter.
                 shift || break
+                ;;
+            --assume-yes)
+                ASSUME_YES="SET"
                 ;;
             *)
                 break
@@ -164,7 +170,10 @@ function sync_usage() {
     echo "     downloaded. Note that the script will re-download the same files if you repeat the" >&2
     echo "     command with this parameter set, so do not do this." >&2
     echo " -s, --snapshot-source <snapshot_source_name>" >&2
-    echo "     The name of the remote source to sync snapshots from."
+    echo "     The name of the remote source to sync snapshots from." >&2
+    echo " --assume-yes" >&2
+    echo "     Automatically answer 'yes' to all prompts during rclone installation when running the" >&2
+    echo "     sync command. Useful for non-interactive or automated setups."
     exit 1
 }
 
@@ -405,8 +414,11 @@ function download_validator_static_configuration_files() {
 function update_validator_in_config_toml() {
     local config_toml="$HOST_SUPRA_HOME/config.toml"
 
-    if ! [ -f "$config_toml" ]; then
+    if [ -f "$config_toml" ]; then
         sed -i'.bak' "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" "$config_toml"
+        echo "✅ Updated validator IP to $VALIDATOR_IP in config.toml"
+    else
+        echo "⚠️ config.toml not found at $config_toml, cannot update VALIDATOR_IP"
     fi
 }
 
@@ -426,9 +438,116 @@ function setup() {
 
     echo "$NODE_TYPE node setup completed."
 }
+# Ensure rclone is installed
+function install_rclone_if_missing() {
+    local assume_yes="$1"  # pass "--assume=yes" to skip prompt
+
+    if ! command -v rclone &> /dev/null; then
+        echo "⚠️  'rclone' is not installed."
+
+        if [[ "$assume_yes" == "--assume=yes" ]]; then
+            echo "🔧 Automatically installing rclone (assume=yes)..."
+            curl -L https://rclone.org/install.sh | sudo bash
+            echo "✅ rclone installed."
+            return
+        fi
+
+        # Prompt the user
+        read -p "Do you want to install rclone automatically from https://rclone.org/install.sh? [y/N] " confirm
+        confirm=${confirm,,}  # convert to lowercase
+
+        if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
+            echo "🔧 Installing rclone..."
+            curl -L https://rclone.org/install.sh | sudo bash
+            echo "✅ rclone installed."
+        else
+            echo "❌ rclone installation skipped by user."
+            echo ""
+            echo "📌 To install rclone manually, run the following:"
+            echo "  curl -L https://rclone.org/install.sh | sudo bash"
+            echo ""
+            exit 1
+        fi
+    else
+        echo "✅ rclone is already installed."
+    fi
+}
+#---------------------------------------------------------- Setup Rclone Config ----------------------------------------------------------
+function setup_rclone_config_if_missing() {
+    local config_path="$HOME/.config/rclone"
+    local config_file="rclone.conf"
+    local full_config_path="$config_path/$config_file"
+    
+    mkdir -p "$config_path"
+
+    # Ensure the file exists before appending
+    touch "$full_config_path"
+
+    if [[ "$NETWORK" == "mainnet" ]]; then
+        export RCLONE_REMOTE_NAME="cloudflare-r2-mainnet"
+        export RCLONE_ACCESS_KEY_ID="ba3e917e8f1eb35772059f8eb3736cac"
+        export RCLONE_SECRET_ACCESS_KEY="432bbb569498de327299a40b6b2357dc282ff4158e939efbe6c75807c4885e3b"
+        export RCLONE_ACCOUNT_ID="4ecc77f16aaa2e53317a19267e3034a4"
+    elif [[ "$NETWORK" == "testnet" ]]; then
+        export RCLONE_REMOTE_NAME="cloudflare-r2-testnet"
+        export RCLONE_ACCESS_KEY_ID="20f826bb30ea7205116e2adc7f19e34d"
+        export RCLONE_SECRET_ACCESS_KEY="1ad51161a013f1115381197929524cc1ff91fbccf016717652af8adf8fa2ed98"
+        export RCLONE_ACCOUNT_ID="4ecc77f16aaa2e53317a19267e3034a4"
+    else
+        echo "❌ Unsupported network: $NETWORK"
+        exit 1
+    fi
+
+    if ! grep -q "^\[$RCLONE_REMOTE_NAME\]" "$config_path/$config_file" 2>/dev/null; then
+        echo "Configuring rclone remote: $RCLONE_REMOTE_NAME"
+        cat <<EOF >> "$config_path/$config_file"
+[$RCLONE_REMOTE_NAME]
+type = s3
+provider = Cloudflare
+access_key_id = ${RCLONE_ACCESS_KEY_ID}
+secret_access_key = ${RCLONE_SECRET_ACCESS_KEY}
+endpoint = https://${RCLONE_ACCOUNT_ID}.r2.cloudflarestorage.com
+region = auto
+chunk_size = 512M
+upload_cutoff = 512M
+EOF
+    else
+        echo "✅ Rclone remote $RCLONE_REMOTE_NAME already exists."
+    fi
+}
+#---------------------------------------------------------- Sync Snapshot Directory ----------------------------------------------------------
+function sync_snapshot_dir() {
+    local remote_subpath="$1"    # e.g. "cloudflare-r2-testnet:testnet-snapshot/snapshots/store"
+    local destination_path="$2"  # e.g. "$HOST_SUPRA_HOME/rpc_store"
+    local log_suffix="$3"        # e.g. "store", "archive", "smr"
+
+    # Sync options
+    local sync_options=(
+        --multi-thread-streams 16
+        --transfers 32
+        --checkers 128
+        --fast-list
+        --low-level-retries 20
+        --retries 10
+        --progress
+        --log-level INFO
+        --log-file "./rclone-sync-${log_suffix}.log"
+    )
+
+    mkdir -p "$destination_path"
+    rm -f "$destination_path/CURRENT"
+
+    echo "⬇️  Downloading snapshot from $remote_subpath to $destination_path ..."
+    
+    # Conditionally add --dry-run if set
+    if [[ -n "$DRY_RUN" ]]; then
+        rclone sync "$remote_subpath" "$destination_path" --dry-run "${sync_options[@]}"
+    else
+        rclone sync "$remote_subpath" "$destination_path" "${sync_options[@]}"
+    fi
+}
 
 #---------------------------------------------------------- Update ----------------------------------------------------------
-
 function remove_old_docker_container() {
     docker stop "$CONTAINER_NAME"
     docker rm "$CONTAINER_NAME"
@@ -555,114 +674,71 @@ function start() {
 #---------------------------------------------------------- Sync ----------------------------------------------------------
 
 function sync_once() {
-    local endpoint_url="$1"
-    local remote_root="$2"
-
-    local sync_options="--endpoint-url $endpoint_url --delete"
-
-    if [ -n "$EXACT_TIMESTAMPS" ]; then
-        sync_options+=" --exact-timestamps"
-    fi
-
+    local remote_root="$1"
     if is_validator; then
-        # Create the local directory if it doesn't exist
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
-
-        # Remove the CURRENT index file. `aws sync` sometimes fails to update this properly.
-        # This ensures that the correct version of the file will be downloaded from the snapshot.
         rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
-
-        # Download store snapshots concurrently
-        aws s3 sync "$remote_root/store/" "$HOST_SUPRA_HOME/smr_storage/" $sync_options
+        sync_snapshot_dir "$remote_root/store" "$HOST_SUPRA_HOME/smr_storage" "smr"
     elif is_rpc; then
-        # Create the local directories if they don't exist
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
-
-        # Remove the CURRENT index files. `aws sync` sometimes fails to update this properly.
-        # This ensures that the correct version of the file will be downloaded from the snapshot.
         rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
         rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
-
-        # Run the two download commands concurrently in the background
-        aws s3 sync "$remote_root/store/" "$HOST_SUPRA_HOME/rpc_store/" $sync_options &
-        aws s3 sync "$remote_root/archive/" "$HOST_SUPRA_HOME/rpc_archive/" $sync_options &
+        sync_snapshot_dir "$remote_root/store" "$HOST_SUPRA_HOME/rpc_store" "store" &
+        sync_snapshot_dir "$remote_root/archive" "$HOST_SUPRA_HOME/rpc_archive" "archive" &
         wait
     fi
 }
 
 function sync() {
-    # Install AWS CLI if not installed
-    install_aws_cli
+    install_rclone_if_missing
+    setup_rclone_config_if_missing
 
-    # Ensure AWS CLI configuration is set up properly
-    mkdir -p ~/.aws
-    if [ ! -f ~/.aws/config ]; then
-        cat <<EOF >~/.aws/config
-[default]
-region = auto
-output = json
-s3 =
-    max_concurrent_requests = 1000
-    multipart_threshold = 512MB
-    multipart_chunksize = 256MB
-EOF
+    if [[ "$1" == "--dry-run" ]]; then
+        echo "Running in dry-run mode..."
+        DRY_RUN="--dry-run"
+    else
+        DRY_RUN=""
     fi
 
-    local bucket_name="mainnet"
-    # Define the custom endpoint for Cloudflare R2
-    local endpoint_url="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
-
-    # Set AWS CLI credentials and bucket name based on the selected network
-    if [ "$NETWORK" == "mainnet" ]; then
-        export AWS_ACCESS_KEY_ID="ba3e917e8f1eb35772059f8eb3736cac"
-        export AWS_SECRET_ACCESS_KEY="432bbb569498de327299a40b6b2357dc282ff4158e939efbe6c75807c4885e3b"
-    elif [ "$NETWORK" == "testnet" ]; then
-        export AWS_ACCESS_KEY_ID="20f826bb30ea7205116e2adc7f19e34d"
-        export AWS_SECRET_ACCESS_KEY="1ad51161a013f1115381197929524cc1ff91fbccf016717652af8adf8fa2ed98"
-
-        if is_validator; then
-            bucket_name="testnet-validator-snapshot"
-        elif is_rpc; then
-            bucket_name="testnet-snapshot"
-        fi
-    fi
-
+    # Determine bucket name
     if [ -n "$SNAPSHOT_SOURCE" ]; then
-        # The user overrode the default snapshot source via the optional parameter.
         bucket_name="$SNAPSHOT_SOURCE"
+    elif [ "$NETWORK" == "mainnet" ]; then
+        bucket_name=$(is_validator && echo "mainnet-validator-snapshot" || echo "mainnet")
+    elif [ "$NETWORK" == "testnet" ]; then
+        bucket_name=$(is_validator && echo "testnet-validator-snapshot" || echo "testnet-snapshot")
     fi
 
-    local remote_root="s3://${bucket_name}/snapshots"
-    # The file that will be present in the `snapshots` directory of the bucket if the
-    # snapshot uploader is currently uploading an update.
-    local lock_file="$remote_root/UPLOAD_IN_PROGRESS"
+    local remote_root="${RCLONE_REMOTE_NAME}:${bucket_name}/snapshots"
+    lock_dir="${remote_root}/"
+    lock_filename="UPLOAD_IN_PROGRESS"
+    sync_once "$remote_root"
+    echo "🔍 Checking for lock file: ${lock_dir}${lock_filename}"
+    if rclone lsf "$lock_dir" | grep -q "^${lock_filename}$"; then
+        echo "🚧 A new snapshot is currently being uploaded to the bucket."
+        echo -n "⏳ Waiting for the upload to complete. This may take 10–15 minutes..."
 
-    # Sync the current state of the bucket.
-    sync_once "$endpoint_url" "$remote_root"
-
-    # Check if an upload is in progress. If it is, then the sync that we just completed
-    # will have terminated in an inconsistent state. Wait for the upload to finish, then
-    # sync one more time.
-    if aws s3 ls "$lock_file" --endpoint-url "$endpoint_url"; then
-        echo "A new snapshot is currently being uploaded to the bucket. "
-        echo -n "Waiting for the upload to complete. This may take 10-15 minutes..."
-
-        # Wait for the upload to complete.
-        while aws s3 ls "$lock_file" --endpoint-url "$endpoint_url"
-        do
+        local retries=120
+        local count=0
+        while rclone lsf "$lock_dir" | grep -q "^${lock_filename}$"; do
+            echo -n "."
             sleep 10
+            ((count++))
+            if [[ $count -ge $retries ]]; then
+                echo ""
+                echo "❌ Timeout: Upload lock file still exists after 10 minutes."
+                exit 1
+            fi
         done
 
-        # Sync the updated state, this time without the `--exact-timestamps` if it was set,
-        # since we only want to sync the new diff. This might fail in certain edge cases,
-        # in which case the operator should manually run the command again with the `--exact-timestamps`
-        # flag present, but should be more efficient most of the time.
-        echo "Downloading the new diff..."
-        unset "$EXACT_TIMESTAMPS"
-        sync_once "$endpoint_url" "$remote_root"
+        echo ""
+        echo "✅ Upload completed. Proceeding to sync..."
+        echo "📥 Downloading snapshot from $remote_root ..."
+        sync_once "$remote_root"
     fi
 }
+
 
 #---------------------------------------------------------- Main ----------------------------------------------------------
 
