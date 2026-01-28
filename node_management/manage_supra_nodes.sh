@@ -238,7 +238,7 @@ function start_validator_docker_container() {
             -e "SUPRA_MAX_UNCOMPRESSED_LOGS=20" \
             -e "SUPRA_MAX_LOG_FILES=40" \
             --net=host \
-            -itd "asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/validator-node:${NEW_IMAGE_VERSION}"
+            -itd "supraoracles/supra-${NETWORK}-validator-node:${NEW_IMAGE_VERSION}"
 }
 
 function start_rpc_docker_container() {
@@ -256,7 +256,7 @@ function start_rpc_docker_container() {
             -e "SUPRA_MAX_UNCOMPRESSED_LOGS=20" \
             -e "SUPRA_MAX_LOG_FILES=40" \
             --net=host \
-            -itd "asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/rpc-node:${NEW_IMAGE_VERSION}"
+            -itd "supraoracles/supra-${NETWORK}-rpc-node:${NEW_IMAGE_VERSION}"
 }
 
 #---------------------------------------------------------- Utility ----------------------------------------------------------
@@ -741,7 +741,7 @@ function main() {
     parse_args "$@"
     verify_args
 
-    DOCKER_IMAGE="asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/${NODE_TYPE}-node:${NEW_IMAGE_VERSION}"
+    DOCKER_IMAGE="supraoracles/supra-${NETWORK}-${NODE_TYPE}-node:${NEW_IMAGE_VERSION}"
 
     if [[ "$NETWORK" == "mainnet" ]]; then
         STATIC_SOURCE="mainnet-data"
