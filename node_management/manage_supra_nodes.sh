@@ -229,6 +229,7 @@ function start_validator_docker_container() {
     docker start "$CONTAINER_NAME" &>/dev/null ||
         docker run \
             --name "$CONTAINER_NAME" \
+            --ulimit nofile=1000000:1000000 \
             --user "${user_id}:${group_id}" \
             -v "$HOST_SUPRA_HOME:/supra/configs" \
             -e "RUST_LOG=debug,sop2p=info,multistream_select=off,libp2p_swarm=off,yamux=off" \
@@ -247,6 +248,7 @@ function start_rpc_docker_container() {
     docker start "$CONTAINER_NAME" &>/dev/null ||
         docker run \
             --name "$CONTAINER_NAME" \
+            --ulimit nofile=1000000:1000000 \
             --user "${user_id}:${group_id}" \
             -v "$HOST_SUPRA_HOME:/supra/configs" \
             -e "RUST_LOG=debug,sop2p=info,multistream_select=off,libp2p_swarm=off,yamux=off" \
