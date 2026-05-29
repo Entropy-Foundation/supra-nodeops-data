@@ -232,7 +232,7 @@ function start_validator_docker_container() {
             --ulimit nofile=1000000:1000000 \
             --user "${user_id}:${group_id}" \
             -v "$HOST_SUPRA_HOME:/supra/configs" \
-            -e "RUST_LOG=debug,sop2p=info,multistream_select=off,libp2p_swarm=off,yamux=off" \
+            -e "RUST_LOG=info,certifier=debug,dkg=debug,epoch_manager=debug,moonshot=debug,mempool=debug,node::dkg_runner=debug,rpc::server=debug,rpc::server::request_processor=debug,rpc::server::message_dispatcher=debug,tracing=warn,yamux=warn,multistream_select=warn,libp2p_swarm=warn" \
             -e "SUPRA_HOME=/supra/configs/" \
             -e "SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
             -e "SUPRA_MAX_LOG_FILE_SIZE=500000000" \
@@ -251,7 +251,7 @@ function start_rpc_docker_container() {
             --ulimit nofile=1000000:1000000 \
             --user "${user_id}:${group_id}" \
             -v "$HOST_SUPRA_HOME:/supra/configs" \
-            -e "RUST_LOG=debug,sop2p=info,multistream_select=off,libp2p_swarm=off,yamux=off" \
+            -e "RUST_LOG=info,certifier=debug,dkg=debug,epoch_manager=debug,rpc::clients=debug,rpc_node::consensus=debug,rpc_node::rest::faucet=trace,rpc_node::graphql=debug,metric=trace,transactions_synchronization=debug,tracing=warn,yamux=warn,multistream_select=warn,libp2p_swarm=warn" \
             -e "SUPRA_HOME=/supra/configs/" \
             -e "SUPRA_LOG_DIR=/supra/configs/rpc_node_logs" \
             -e "SUPRA_MAX_LOG_FILE_SIZE=500000000" \
