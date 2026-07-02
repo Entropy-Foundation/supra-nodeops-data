@@ -613,7 +613,7 @@ function maybe_update_container() {
         # update_smr_settings_toml
     else
         start_rpc_docker_container
-        update_config_toml
+        # update_config_toml
     fi
 
     echo "Container update completed."
