@@ -374,6 +374,7 @@ function download_validator_static_configuration_files() {
     local supra_committees="$HOST_SUPRA_HOME/supra_committees.json"
     local genesis_blob="$HOST_SUPRA_HOME/genesis.blob"
     local smr_settings="$HOST_SUPRA_HOME/smr_settings.toml"
+    local genesis_parameters="$HOST_SUPRA_HOME/genesis_parameters.toml"
     local genesis_configs="$HOST_SUPRA_HOME/genesis_configs.json"
     local genesis_config_arbitrary_data="$HOST_SUPRA_HOME/genesis_config_arbitrary_data.json"
 
@@ -401,6 +402,9 @@ function download_validator_static_configuration_files() {
 
     # Download smr_settings.toml if not present or version is missing/lower than NEW_IMAGE_VERSION
     backup_and_download_if_outdated "$smr_settings" "https://${STATIC_SOURCE}.supra.com/configs/smr_settings.toml" "$NEW_IMAGE_VERSION" "smr_settings.toml"
+
+    # As of v11.7.0 the protocol parameters live in their own file, split out of smr_settings.toml.
+    backup_and_download_if_outdated "$genesis_parameters" "https://${STATIC_SOURCE}.supra.com/configs/genesis_parameters.toml" "$NEW_IMAGE_VERSION" "genesis_parameters.toml"
 
     if ! [ -f "$genesis_configs" ]; then
         wget -nc -O "$genesis_configs" "https://${STATIC_SOURCE}.supra.com/configs/genesis_configs.json"
@@ -636,6 +640,7 @@ function copy_rpc_root_config_files() {
 
 function copy_validator_root_config_files() {
     docker cp "$HOST_SUPRA_HOME"/smr_settings.toml "$CONTAINER_NAME:/supra/"
+    docker cp "$HOST_SUPRA_HOME"/genesis_parameters.toml "$CONTAINER_NAME:/supra/"
     docker cp "$HOST_SUPRA_HOME"/genesis.blob "$CONTAINER_NAME:/supra/"
 }
 
